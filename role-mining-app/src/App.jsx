@@ -1,47 +1,48 @@
-import React from 'react';
-import { ThemeProvider, createTheme, CssBaseline, Box, AppBar, Toolbar, Typography, Container, Paper } from '@mui/material';
-import DataUpload from './components/DataUpload';
+import React, { useState } from 'react';
+import { ThemeProvider, createTheme, CssBaseline, AppBar, Toolbar, Typography, Button } from '@mui/material';
+import RoleMiningContainer from './components/RoleMiningContainer';
 import SecurityIcon from '@mui/icons-material/Security';
-import InfoIcon from '@mui/icons-material/Info';
+import './styles.css';
 
 const theme = createTheme({
   palette: {
-    mode: 'light',
-    primary: {
-      main: '#2c3e50', // Deep blue-gray
-      light: '#34495e',
-      dark: '#1a252f',
+    background: {
+      default: '#F9FAFB',
+      paper: '#FFFFFF',
     },
-    secondary: {
-      main: '#e74c3c', // Vibrant red
-      light: '#ff6b6b',
-      dark: '#c0392b',
+    primary: {
+      main: '#1E40AF',
+      light: '#3B82F6',
+      dark: '#1E3A8A',
+    },
+    text: {
+      primary: '#1F2937',
+      secondary: '#4B5563',
+    },
+    error: {
+      main: '#EF4444',
+      light: '#F87171',
+      dark: '#DC2626',
     },
     success: {
-      main: '#27ae60', // Forest green
-      light: '#2ecc71',
-      dark: '#219a52',
-    },
-    info: {
-      main: '#3498db', // Sky blue
-      light: '#5dade2',
-      dark: '#2980b9',
-    },
-    background: {
-      default: '#f8f9fa',
-      paper: '#ffffff',
+      main: '#10B981',
+      light: '#34D399',
+      dark: '#059669',
     },
   },
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h4: {
-      fontWeight: 600,
+    h1: {
+      fontWeight: 700,
+      color: '#F2F2F2',
     },
-    h5: {
-      fontWeight: 500,
+    h6: {
+      color: '#F2F2F2',
+      fontWeight: 600,
     },
     body1: {
       lineHeight: 1.7,
+      color: '#DAD8D8',
     },
   },
   components: {
@@ -51,21 +52,59 @@ const theme = createTheme({
           textTransform: 'none',
           borderRadius: 8,
           fontWeight: 500,
+          padding: '12px 32px',
+          fontSize: '1.1rem',
+          backgroundColor: '#251A1A',
+          color: '#F2F2F2',
+          border: '2px solid #251A1A',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            backgroundColor: '#554D4D',
+            borderColor: '#251A1A',
+            transform: 'translateY(-2px)',
+            boxShadow: '0 4px 8px rgba(13, 1, 1, 0.2)',
+          }
+        },
+        contained: {
+          '&:hover': {
+            backgroundColor: '#554D4D',
+          }
+        },
+        outlined: {
+          backgroundColor: 'transparent',
+          borderColor: '#B6B2B2',
+          color: '#F2F2F2',
+          '&:hover': {
+            backgroundColor: '#B6B2B2',
+            borderColor: '#B6B2B2',
+            color: '#251A1A',
+          }
         },
       },
     },
-    MuiCard: {
+    MuiAppBar: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          backgroundColor: '#251A1A',
+          boxShadow: 'none',
+          borderBottom: '1px solid #0D0101',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          backgroundColor: '#FFFFFF',
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          color: '#F2F2F2',
+          '&:hover': {
+            backgroundColor: '#554D4D',
+          }
         },
       },
     },
@@ -73,73 +112,75 @@ const theme = createTheme({
 });
 
 function App() {
+  const [showUploader, setShowUploader] = useState(false);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
-        <AppBar position="static" elevation={1} sx={{ backgroundColor: 'white', borderBottom: 1, borderColor: 'grey.200' }}>
-          <Container maxWidth="lg">
-            <Toolbar disableGutters>
-              <SecurityIcon sx={{ mr: 2, color: 'primary.main' }} />
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
-                Role Mining App
-              </Typography>
-            </Toolbar>
-          </Container>
+      <div className="app-container">
+        <AppBar position="static">
+          <Toolbar className="toolbar">
+            <Button
+              onClick={() => setShowUploader(false)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 16px',
+                minWidth: 'auto',
+                textTransform: 'none',
+                backgroundColor: 'transparent',
+                border: 'none',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                },
+                '&:focus': {
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                },
+                '&:active': {
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                }
+              }}
+            >
+              <div className="logo-container">
+                <SecurityIcon sx={{ color: '#F2F2F2', fontSize: 28 }} />
+                <Typography variant="h6" sx={{ ml: 2 }}>
+                  Role Mining App
+                </Typography>
+              </div>
+            </Button>
+          </Toolbar>
         </AppBar>
         
-        <Container 
-          maxWidth={false} 
-          sx={{ 
-            flex: 1,
-            py: 6,
-            px: { xs: 2, sm: 4, md: 6 },
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
-          }}
-        >
-          <Container maxWidth="lg">
-            <Box sx={{ mb: 6 }}>
-              <Paper 
-                sx={{ 
-                  p: 4, 
-                  backgroundColor: 'info.light', 
-                  color: 'white',
-                  borderRadius: 3,
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-                }}
+        {!showUploader ? (
+          <main className="landing-container">
+            <div className="hero-content">
+              <h1 className="hero-title">
+                Optimize Your Access Management
+              </h1>
+              <p className="hero-description">
+                Transform your organization's access patterns into efficient role-based structures. 
+                Our intelligent role mining solution analyzes user entitlements to suggest optimal 
+                role definitions, improving security and reducing administrative overhead.
+              </p>
+              <Button 
+                variant="contained"
+                size="large"
+                onClick={() => setShowUploader(true)}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <InfoIcon sx={{ mr: 1 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 500 }}>
-                    Welcome to Role Mining App
-                  </Typography>
-                </Box>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  This application helps you analyze and optimize user access patterns in your organization. 
-                  By uploading your access data, you can:
-                </Typography>
-                <Box component="ul" sx={{ pl: 2, mb: 0 }}>
-                  <Typography component="li" sx={{ mb: 1 }}>
-                    Identify common access patterns and potential roles
-                  </Typography>
-                  <Typography component="li" sx={{ mb: 1 }}>
-                    Optimize access management and reduce security risks
-                  </Typography>
-                  <Typography component="li" sx={{ mb: 1 }}>
-                    Improve compliance and audit readiness
-                  </Typography>
-                  <Typography component="li">
-                    Streamline role-based access control implementation
-                  </Typography>
-                </Box>
-              </Paper>
-            </Box>
-            <DataUpload />
-          </Container>
-        </Container>
-      </Box>
+                Get Started
+              </Button>
+            </div>
+          </main>
+        ) : (
+          <main className="uploader-container">
+            <RoleMiningContainer />
+          </main>
+        )}
+      </div>
     </ThemeProvider>
   );
 }
