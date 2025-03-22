@@ -1,0 +1,53 @@
+# Node.js / React Frontend
+/role-mining-app/node_modules/
+/role-mining-app/.pnp
+/role-mining-app/.pnp.js
+/role-mining-app/coverage/
+/role-mining-app/build/
+/role-mining-app/.DS_Store
+/role-mining-app/.env
+/role-mining-app/.env.local
+/role-mining-app/.env.development.local
+/role-mining-app/.env.test.local
+/role-mining-app/.env.production.local
+/role-mining-app/npm-debug.log*
+/role-mining-app/yarn-debug.log*
+/role-mining-app/yarn-error.log*
+
+# Spring Boot / Java Backend
+/role-mining-api/target/
+/role-mining-api/!.mvn/wrapper/maven-wrapper.jar
+/role-mining-api/.mvn/
+/role-mining-api/mvnw
+/role-mining-api/mvnw.cmd
+/role-mining-api/.apt_generated
+/role-mining-api/.classpath
+/role-mining-api/.factorypath
+/role-mining-api/.project
+/role-mining-api/.settings
+/role-mining-api/.springBeans
+/role-mining-api/bin/
+/role-mining-api/.idea
+/role-mining-api/*.iws
+/role-mining-api/*.iml
+/role-mining-api/*.ipr
+/role-mining-api/nbproject/
+/role-mining-api/nbbuild/
+/role-mining-api/dist/
+/role-mining-api/nbdist/
+/role-mining-api/.nb-gradle/
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Common
+*.log
+*.swp
+*.bak
+*~
+.DS_Store
+Thumbs.db 
