@@ -1,0 +1,183 @@
+Supervizor;1;Active Directory;
+Operator1;1;SAP;
+Operator2;2;SAP;
+SAP1;1;SAP;
+CCA2;2;Oracle;
+Admin;2;Active Directory;
+Developer;1;Jira;;;;;;;;;;a;45
+ProjectManager;2;Jira;;;;;;;;;;a;18
+SalesRep;1;Salesforce;;;;;;;;;;a;27
+SalesManager;2;Salesforce;;;;;;;;;;a;9
+Analyst;1;Tableau;;;;;;;;;;a;15
+ServiceAgent;1;ServiceNow;;;;;;;;;;a;22
+HRSpecialist;2;Workday;;;;;;;;;;a;11
+NetworkAdmin;2;Cisco ASA;;;;;;;;;;a;8
+SecurityAnalyst;2;Splunk;;;;;;;;;;a;14
+CloudEngineer;2;AWS EC2;;;;;;;;;;a;19
+CloudEngineer;2;AWS S3;;;;;;;;;;a;19
+CloudEngineer;2;AWS Lambda;;;;;;;;;;a;19
+DevOpsEngineer;2;Docker;;;;;;;;;;a;12
+DevOpsEngineer;2;Kubernetes;;;;;;;;;;a;12
+DevOpsEngineer;2;Jenkins;;;;;;;;;;a;12
+DatabaseAdmin;2;MongoDB;;;;;;;;;;a;7
+DatabaseAdmin;2;PostgreSQL;;;;;;;;;;a;7
+DatabaseAdmin;2;MySQL;;;;;;;;;;a;7
+FrontendDev;2;React;;;;;;;;;;a;18
+FrontendDev;2;Angular;;;;;;;;;;a;16
+BackendDev;2;Node.js;;;;;;;;;;a;21
+BackendDev;2;Express.js;;;;;;;;;;a;21
+FullStackDev;2;JavaScript;;;;;;;;;;a;15
+SysAdmin;2;Linux;;;;;;;;;;a;10
+SysAdmin;2;Windows;;;;;;;;;;a;10
+NetworkEngineer;2;Cisco ASA;;;;;;;;;;a;14
+InfraArchitect;2;AWS EC2;;;;;;;;;;a;5
+InfraArchitect;2;Azure;;;;;;;;;;a;5
+SecurityArchitect;2;Palo Alto Networks;;;;;;;;;;a;6
+SecurityArchitect;2;Fortinet;;;;;;;;;;a;6
+IdentityManager;2;Okta;;;;;;;;;;a;8
+IdentityManager;2;Auth0;;;;;;;;;;a;8
+SREEngineer;2;Prometheus;;;;;;;;;;a;9
+SREEngineer;2;Grafana;;;;;;;;;;a;9
+DataAnalyst;2;Tableau;;;;;;;;;;a;20
+DataAnalyst;2;Microsoft Power BI;;;;;;;;;;a;20
+DataEngineer;2;Apache Spark;;;;;;;;;;a;12
+DataEngineer;2;Apache Hadoop;;;;;;;;;;a;12
+DataScientist;2;Python;;;;;;;;;;a;17
+DataScientist;2;TensorFlow;;;;;;;;;;a;17
+DataScientist;2;PyTorch;;;;;;;;;;a;17
+UXDesigner;2;Figma;;;;;;;;;;a;11
+UXDesigner;2;Adobe XD;;;;;;;;;;a;11
+UIDesigner;2;Adobe Photoshop;;;;;;;;;;a;14
+UIDesigner;2;Adobe Illustrator;;;;;;;;;;a;14
+ProductManager;2;Jira;;;;;;;;;;a;24
+QAEngineer;2;Selenium;;;;;;;;;;a;19
+QAEngineer;2;JUnit;;;;;;;;;;a;19
+AutomationEngineer;2;Jenkins;;;;;;;;;;a;13
+AutomationEngineer;2;GitLab;;;;;;;;;;a;13
+BusinessAnalyst;2;Microsoft Office 365;;;;;;;;;;a;22
+BusinessAnalyst;2;Tableau;;;;;;;;;;a;22
+ProjectCoordinator;1;Asana;;;;;;;;;;a;16
+ProjectCoordinator;1;Trello;;;;;;;;;;a;16
+MarketingSpecialist;2;HubSpot;;;;;;;;;;a;12
+MarketingSpecialist;2;Salesforce;;;;;;;;;;a;12
+CustomerSupportAgent;1;Zendesk;;;;;;;;;;a;28
+CustomerSupportAgent;1;Freshdesk;;;;;;;;;;a;28
+ITSupportTech;1;ServiceNow;;;;;;;;;;a;31
+ITSupportTech;1;Microsoft Exchange;;;;;;;;;;a;31
+ComplianceOfficer;2;SAP;;;;;;;;;;a;8
+ComplianceOfficer;2;Oracle;;;;;;;;;;a;8
+SecurityAnalyst;2;Splunk;;;;;;;;;;a;17
+SecurityAnalyst;2;ELK;;;;;;;;;;a;17
+NetworkEngineer;2;Cisco;;;;;;;;;;a;13
+NetworkEngineer;2;Juniper;;;;;;;;;;a;13
+CloudArchitect;2;AWS;;;;;;;;;;a;7
+CloudArchitect;2;Azure;;;;;;;;;;a;7
+CloudArchitect;2;GCP;;;;;;;;;;a;7
+DataArchitect;2;Snowflake;;;;;;;;;;a;6
+DataArchitect;2;BigQuery;;;;;;;;;;a;6
+MobileAppDev;2;iOS;;;;;;;;;;a;9
+MobileAppDev;2;Android;;;;;;;;;;a;9
+ERP_Admin;2;SAP;;;;;;;;;;a;5
+ERP_Admin;2;Oracle;;;;;;;;;;a;5
+BusinessIntelligenceAnalyst;2;Tableau;;;;;;;;;;a;14
+BusinessIntelligenceAnalyst;2;Power BI;;;;;;;;;;a;14
+DatabaseDeveloper;2;MySQL;;;;;;;;;;a;15
+DatabaseDeveloper;2;PostgreSQL;;;;;;;;;;a;15
+SystemIntegrator;2;MuleSoft;;;;;;;;;;a;9
+SystemIntegrator;2;Dell Boomi;;;;;;;;;;a;9
+InfrastructureAdmin;2;VMware;;;;;;;;;;a;7
+InfrastructureAdmin;2;Hyper-V;;;;;;;;;;a;7
+ITAuditor;2;Qualys;;;;;;;;;;a;10
+ITAuditor;2;Tenable;;;;;;;;;;a;10
+TechnicalWriter;1;Confluence;;;;;;;;;;a;8
+TechnicalWriter;1;Google Docs;;;;;;;;;;a;8
+ContentManager;1;WordPress;;;;;;;;;;a;12
+ContentManager;1;Drupal;;;;;;;;;;a;12
+APIDesigner;2;Swagger;;;;;;;;;;a;8
+APIDesigner;2;Postman;;;;;;;;;;a;8
+TestManager;2;TestRail;;;;;;;;;;a;6
+TestManager;2;Jira;;;;;;;;;;a;6
+PerformanceEngineer;2;JMeter;;;;;;;;;;a;7
+PerformanceEngineer;2;LoadRunner;;;;;;;;;;a;7
+DevSecOpsEngineer;2;SonarQube;;;;;;;;;;a;9
+DevSecOpsEngineer;2;CheckMarx;;;;;;;;;;a;9
+ETLDeveloper;2;Informatica;;;;;;;;;;a;11
+ETLDeveloper;2;Talend;;;;;;;;;;a;11
+CRMAdministrator;2;Salesforce;;;;;;;;;;a;8
+CRMAdministrator;2;Microsoft Dynamics 365;;;;;;;;;;a;8
+WebDeveloper;2;HTML/CSS;;;;;;;;;;a;17
+WebDeveloper;2;JavaScript;;;;;;;;;;a;17
+VirtualizationSpecialist;2;VMware;;;;;;;;;;a;5
+VirtualizationSpecialist;2;KVM;;;;;;;;;;a;5
+ITProjectManager;2;Microsoft Project;;;;;;;;;;a;15
+ITProjectManager;2;Smartsheet;;;;;;;;;;a;15
+ReleaseManager;2;Jenkins;;;;;;;;;;a;7
+ReleaseManager;2;Atlassian Bamboo;;;;;;;;;;a;7
+ConfigurationManager;2;Ansible;;;;;;;;;;a;6
+ConfigurationManager;2;Puppet;;;;;;;;;;a;6
+BigDataEngineer;2;Apache Hadoop;;;;;;;;;;a;8
+BigDataEngineer;2;Apache Spark;;;;;;;;;;a;8
+AIEngineer;2;TensorFlow;;;;;;;;;;a;7
+AIEngineer;2;PyTorch;;;;;;;;;;a;7
+MLEngineer;2;scikit-learn;;;;;;;;;;a;9
+MLEngineer;2;TensorFlow;;;;;;;;;;a;9
+EmbeddedDeveloper;2;C;;;;;;;;;;a;10
+EmbeddedDeveloper;2;C++;;;;;;;;;;a;10
+GameDeveloper;2;Unity;;;;;;;;;;a;8
+GameDeveloper;2;Unreal Engine;;;;;;;;;;a;8
+DeveloperAdvocate;2;GitHub;;;;;;;;;;a;6
+DeveloperAdvocate;2;GitLab;;;;;;;;;;a;6
+FinancialAnalyst;2;Excel;;;;;;;;;;a;14
+FinancialAnalyst;2;Microsoft Power BI;;;;;;;;;;a;14
+LegalCoordinator;1;Microsoft SharePoint;;;;;;;;;;a;6
+LegalCoordinator;1;DocuSign;;;;;;;;;;a;6
+SystemsAnalyst;2;Visio;;;;;;;;;;a;11
+SystemsAnalyst;2;Lucidchart;;;;;;;;;;a;11
+ChangeManager;2;ServiceNow;;;;;;;;;;a;8
+ChangeManager;2;Jira;;;;;;;;;;a;8
+KnowledgeManager;2;Confluence;;;;;;;;;;a;7
+KnowledgeManager;2;Microsoft SharePoint;;;;;;;;;;a;7
+SoftwareArchitect;2;AWS;;;;;;;;;;a;9
+SoftwareArchitect;2;Azure;;;;;;;;;;a;9
+ITTrainer;1;Articulate;;;;;;;;;;a;8
+ITTrainer;1;Moodle;;;;;;;;;;a;8
+DataPrivacyOfficer;2;OneTrust;;;;;;;;;;a;4
+DataPrivacyOfficer;2;TrustArc;;;;;;;;;;a;4
+AIResearcher;2;TensorFlow;;;;;;;;;;a;5
+AIResearcher;2;PyTorch;;;;;;;;;;a;5
+BlockchainDeveloper;2;Ethereum;;;;;;;;;;a;6
+BlockchainDeveloper;2;Hyperledger;;;;;;;;;;a;6
+IOTDeveloper;2;Arduino;;;;;;;;;;a;7
+IOTDeveloper;2;Raspberry Pi;
+ScrumMaster;2;Jira;
+ScrumMaster;2;Confluence;
+ProductOwner;2;Jira;
+ProductOwner;2;Confluence;
+CommunityManager;1;Slack;
+CommunityManager;1;Discord;
+DataEntrySpecialist;1;Excel;
+DataEntrySpecialist;1;Access;
+ECM_Admin;2;Microsoft SharePoint;
+ECM_Admin;2;Box;
+ServiceDeskManager;2;ServiceNow;
+ServiceDeskManager;2;Zendesk;
+DigitalMarketingSpecialist;2;Google Analytics;
+DigitalMarketingSpecialist;2;HubSpot;
+UserResearcher;2;Qualtrics;
+UserResearcher;2;SurveyMonkey;
+BusinessConsultant;2;PowerPoint;
+BusinessConsultant;2;Excel;
+LicensingSpecialist;1;Adobe Creative Cloud;
+LicensingSpecialist;1;Microsoft Office 365;
+MobilityManager;2;Intune;
+MobilityManager;2;AirWatch;
+DigitalTransformationLead;2;Jira;
+DigitalTransformationLead;2;Miro;
+BusinessProcessAnalyst;2;Visio;
+BusinessProcessAnalyst;2;Lucidchart;
+RegulatoryAffairsSpecialist;2;Documentum;
+RegulatoryAffairsSpecialist;2;Veeva;
+TechnicalAccount;2;Salesforce;
+TechnicalAccount;2;Gainsight;
+ApplicationSupportSpecialist;2;ServiceNow;
+ApplicationSupportSpecialist;2;JIRA Service Desk;

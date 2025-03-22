@@ -1,0 +1,527 @@
+Operator1;1;SAP;USR001
+Operator1;1;SAP;USR002
+Operator1;1;SAP;USR003
+Operator1;1;SAP;USR004
+Operator1;1;SAP;USR005
+Operator1;1;SAP;USR006
+Operator2;2;SAP;USR001
+Operator2;2;SAP;USR002
+Operator2;2;SAP;USR003
+Operator2;2;SAP;USR004
+Operator2;2;SAP;USR005
+Operator2;2;SAP;USR006
+CCA2;2;Oracle;USR005
+CCA2;2;Oracle;USR006
+CCA2;2;Oracle;USR007
+Supervizor;1;Active Directory;USR005
+Supervizor;1;Active Directory;USR006
+Supervizor;1;Active Directory;USR007
+Admin;2;Active Directory;USR008
+Admin;2;Active Directory;USR009
+Admin;2;Active Directory;USR010
+Developer;1;Jira;USR011
+Developer;1;Jira;USR012
+Developer;1;Jira;USR013
+ProjectManager;2;Jira;USR014
+ProjectManager;2;Jira;USR015
+SalesRep;1;Salesforce;USR016
+SalesRep;1;Salesforce;USR017
+SalesRep;1;Salesforce;USR018
+SalesManager;2;Salesforce;USR019
+SalesManager;2;Salesforce;USR020
+Analyst;1;Tableau;USR021
+Analyst;1;Tableau;USR022
+ServiceAgent;1;ServiceNow;USR023
+ServiceAgent;1;ServiceNow;USR024
+HRSpecialist;2;Workday;USR025
+HRSpecialist;2;Workday;USR026
+NetworkAdmin;2;Cisco ASA;USR027
+NetworkAdmin;2;Cisco ASA;USR077
+NetworkAdmin;2;Cisco ASA;USR131
+SecurityAnalyst;2;Splunk;USR078
+SecurityAnalyst;2;Splunk;USR082
+SecurityAnalyst;2;Splunk;USR143
+SecurityAnalyst;2;ELK;USR079
+SecurityAnalyst;2;ELK;USR080
+SecurityAnalyst;2;Splunk;USR144
+SecurityAnalyst;2;ELK;USR144
+CloudEngineer;2;AWS EC2;USR096
+CloudEngineer;2;AWS EC2;USR097
+CloudEngineer;2;AWS EC2;USR049
+CloudEngineer;2;AWS EC2;USR088
+CloudEngineer;2;AWS EC2;USR089
+CloudEngineer;2;AWS EC2;USR090
+CloudEngineer;2;AWS EC2;USR091
+DevOpsEngineer;2;Docker;USR038
+DevOpsEngineer;2;Docker;USR048
+DevOpsEngineer;2;Docker;USR058
+DevOpsEngineer;2;Kubernetes;USR038
+DevOpsEngineer;2;Kubernetes;USR048
+DevOpsEngineer;2;Kubernetes;USR058
+DevOpsEngineer;2;Jenkins;USR038
+DevOpsEngineer;2;Jenkins;USR048
+DevOpsEngineer;2;Jenkins;USR058
+ReleaseManager;2;Jenkins;USR038
+ReleaseManager;2;Jenkins;USR048
+ReleaseManager;2;Jenkins;USR058
+ReleaseManager;2;Jenkins;USR096
+ReleaseManager;2;Jenkins;USR097
+ReleaseManager;2;Jenkins;USR049
+DatabaseAdmin;2;MongoDB;USR086
+DatabaseAdmin;2;PostgreSQL;USR086
+DatabaseAdmin;2;MySQL;USR086
+DatabaseAdmin;2;MongoDB;USR087
+DatabaseAdmin;2;PostgreSQL;USR087
+DatabaseAdmin;2;MySQL;USR087
+FrontendDev;2;React;USR042
+FrontendDev;2;Angular;USR042
+FrontendDev;2;React;USR051
+FrontendDev;2;Angular;USR051
+FrontendDev;2;React;USR061
+FrontendDev;2;Angular;USR061
+BackendDev;2;Node.js;USR052
+BackendDev;2;Express.js;USR052
+BackendDev;2;Node.js;USR062
+BackendDev;2;Express.js;USR062
+BackendDev;2;Node.js;USR072
+BackendDev;2;Express.js;USR072
+FullStackDev;2;JavaScript;USR064
+FullStackDev;2;JavaScript;USR073
+FullStackDev;2;JavaScript;USR074
+SysAdmin;2;Linux;USR098
+SysAdmin;2;Windows;USR098
+SysAdmin;2;Linux;USR099
+SysAdmin;2;Windows;USR099
+NetworkEngineer;2;Cisco ASA;USR100
+NetworkEngineer;2;Cisco ASA;USR101
+InfraArchitect;2;AWS EC2;USR039
+InfraArchitect;2;Azure;USR039
+InfraArchitect;2;AWS EC2;USR040
+InfraArchitect;2;Azure;USR040
+SecurityArchitect;2;Palo Alto Networks;USR078
+SecurityArchitect;2;Fortinet;USR078
+SecurityArchitect;2;Palo Alto Networks;USR080
+SecurityArchitect;2;Fortinet;USR080
+SecurityArchitect;2;Palo Alto Networks;USR143
+SecurityArchitect;2;Palo Alto Networks;USR144
+SecurityArchitect;2;Palo Alto Networks;USR054
+SecurityArchitect;2;Palo Alto Networks;USR055
+SecurityArchitect;2;Fortinet;USR078
+SecurityArchitect;2;Fortinet;USR082
+SecurityArchitect;2;Fortinet;USR143
+SecurityArchitect;2;Fortinet;USR144
+IdentityManager;2;Okta;USR081
+IdentityManager;2;Auth0;USR081
+IdentityManager;2;Okta;USR083
+IdentityManager;2;Auth0;USR083
+SREEngineer;2;Prometheus;USR102
+SREEngineer;2;Grafana;USR102
+SREEngineer;2;Prometheus;USR103
+SREEngineer;2;Grafana;USR103
+DataAnalyst;2;Tableau;USR108
+DataAnalyst;2;Microsoft Power BI;USR108
+DataAnalyst;2;Tableau;USR109
+DataAnalyst;2;Microsoft Power BI;USR109
+DataAnalyst;2;Tableau;USR110
+DataAnalyst;2;Microsoft Power BI;USR110
+DataEngineer;2;Apache Spark;USR111
+DataEngineer;2;Apache Hadoop;USR111
+DataEngineer;2;Apache Spark;USR112
+DataEngineer;2;Apache Hadoop;USR112
+DataScientist;2;Python;USR059
+DataScientist;2;TensorFlow;USR059
+DataScientist;2;PyTorch;USR059
+DataScientist;2;Python;USR060
+DataScientist;2;TensorFlow;USR060
+DataScientist;2;PyTorch;USR060
+UXDesigner;2;Figma;USR067
+UXDesigner;2;Adobe XD;USR067
+UXDesigner;2;Figma;USR068
+UXDesigner;2;Adobe XD;USR068
+UIDesigner;2;Adobe Photoshop;USR069
+UIDesigner;2;Adobe Illustrator;USR069
+UIDesigner;2;Adobe Photoshop;USR070
+UIDesigner;2;Adobe Illustrator;USR070
+ProductManager;2;Jira;USR104
+ProductManager;2;Jira;USR105
+ProductManager;2;Jira;USR106
+ProductManager;2;Jira;USR107
+QAEngineer;2;Selenium;USR030
+QAEngineer;2;JUnit;USR030
+QAEngineer;2;Selenium;USR026
+QAEngineer;2;JUnit;USR026
+AutomationEngineer;2;Jenkins;USR120
+AutomationEngineer;2;GitLab;USR120
+AutomationEngineer;2;Jenkins;USR119
+AutomationEngineer;2;GitLab;USR119
+BusinessAnalyst;2;Microsoft Office 365;USR113
+BusinessAnalyst;2;Tableau;USR113
+BusinessAnalyst;2;Microsoft Office 365;USR114
+BusinessAnalyst;2;Tableau;USR114
+ProjectCoordinator;1;Asana;USR115
+ProjectCoordinator;1;Trello;USR115
+ProjectCoordinator;1;Asana;USR116
+ProjectCoordinator;1;Trello;USR116
+MarketingSpecialist;2;HubSpot;USR117
+MarketingSpecialist;2;Salesforce;USR117
+MarketingSpecialist;2;HubSpot;USR118
+MarketingSpecialist;2;Salesforce;USR118
+CustomerSupportAgent;1;Zendesk;USR130
+CustomerSupportAgent;1;Freshdesk;USR130
+CustomerSupportAgent;1;Zendesk;USR129
+CustomerSupportAgent;1;Freshdesk;USR129
+ITSupportTech;1;ServiceNow;USR171
+ITSupportTech;1;Microsoft Exchange;USR171
+ITSupportTech;1;ServiceNow;USR172
+ITSupportTech;1;Microsoft Exchange;USR172
+ComplianceOfficer;2;SAP;USR179
+ComplianceOfficer;2;Oracle;USR179
+ComplianceOfficer;2;SAP;USR180
+ComplianceOfficer;2;Oracle;USR180
+SecurityAnalyst;2;Splunk;USR143
+SecurityAnalyst;2;ELK;USR143
+SecurityAnalyst;2;Splunk;USR144
+SecurityAnalyst;2;ELK;USR144
+NetworkEngineer;2;Cisco;USR153
+NetworkEngineer;2;Juniper;USR153
+NetworkEngineer;2;Cisco;USR154
+NetworkEngineer;2;Juniper;USR154
+CloudArchitect;2;AWS;USR157
+CloudArchitect;2;Azure;USR157
+CloudArchitect;2;GCP;USR157
+CloudArchitect;2;AWS;USR158
+CloudArchitect;2;Azure;USR158
+CloudArchitect;2;GCP;USR158
+DataArchitect;2;Snowflake;USR185
+DataArchitect;2;BigQuery;USR185
+DataArchitect;2;Snowflake;USR186
+DataArchitect;2;BigQuery;USR186
+MobileAppDev;2;iOS;USR121
+MobileAppDev;2;Android;USR121
+MobileAppDev;2;iOS;USR122
+MobileAppDev;2;Android;USR122
+ERP_Admin;2;SAP;USR193
+ERP_Admin;2;Oracle;USR193
+ERP_Admin;2;SAP;USR194
+ERP_Admin;2;Oracle;USR194
+BusinessIntelligenceAnalyst;2;Tableau;USR195
+BusinessIntelligenceAnalyst;2;Power BI;USR195
+BusinessIntelligenceAnalyst;2;Tableau;USR196
+BusinessIntelligenceAnalyst;2;Power BI;USR196
+DatabaseDeveloper;2;MySQL;USR145
+DatabaseDeveloper;2;PostgreSQL;USR145
+DatabaseDeveloper;2;MySQL;USR146
+DatabaseDeveloper;2;PostgreSQL;USR146
+SystemIntegrator;2;MuleSoft;USR197
+SystemIntegrator;2;Dell Boomi;USR197
+SystemIntegrator;2;MuleSoft;USR198
+SystemIntegrator;2;Dell Boomi;USR198
+InfrastructureAdmin;2;VMware;USR199
+InfrastructureAdmin;2;Hyper-V;USR199
+InfrastructureAdmin;2;VMware;USR200
+InfrastructureAdmin;2;Hyper-V;USR200
+WebDeveloper;2;HTML/CSS;USR041
+WebDeveloper;2;JavaScript;USR041
+WebDeveloper;2;HTML/CSS;USR042
+WebDeveloper;2;JavaScript;USR042
+WebDeveloper;2;HTML/CSS;USR043
+WebDeveloper;2;JavaScript;USR043
+DataAnalyst;2;Tableau;USR044
+DataAnalyst;2;Microsoft Power BI;USR044
+DataAnalyst;2;Tableau;USR045
+DataAnalyst;2;Microsoft Power BI;USR045
+BusinessAnalyst;2;Microsoft Office 365;USR046
+BusinessAnalyst;2;Tableau;USR046
+BusinessAnalyst;2;Microsoft Office 365;USR047
+BusinessAnalyst;2;Tableau;USR047
+ScrumMaster;2;Jira;USR050
+ScrumMaster;2;Confluence;USR050
+ScrumMaster;2;Jira;USR051
+ScrumMaster;2;Confluence;USR051
+ProductOwner;2;Jira;USR052
+ProductOwner;2;Confluence;USR052
+ProductOwner;2;Jira;USR053
+ProductOwner;2;Confluence;USR053
+SecurityAnalyst;2;Splunk;USR054
+SecurityAnalyst;2;ELK;USR054
+SecurityAnalyst;2;Splunk;USR055
+SecurityAnalyst;2;ELK;USR055
+DataScientist;2;Python;USR056
+DataScientist;2;TensorFlow;USR056
+DataScientist;2;PyTorch;USR056
+DataScientist;2;Python;USR057
+DataScientist;2;TensorFlow;USR057
+DataScientist;2;PyTorch;USR057
+SystemsAnalyst;2;Visio;USR058
+SystemsAnalyst;2;Lucidchart;USR058
+SystemsAnalyst;2;Visio;USR059
+SystemsAnalyst;2;Lucidchart;USR059
+FinancialAnalyst;2;Excel;USR060
+FinancialAnalyst;2;Microsoft Power BI;USR060
+FinancialAnalyst;2;Excel;USR061
+FinancialAnalyst;2;Microsoft Power BI;USR061
+ITProjectManager;2;Microsoft Project;USR062
+ITProjectManager;2;Smartsheet;USR062
+ITProjectManager;2;Microsoft Project;USR063
+ITProjectManager;2;Smartsheet;USR063
+BusinessIntelligenceAnalyst;2;Tableau;USR064
+BusinessIntelligenceAnalyst;2;Power BI;USR064
+BusinessIntelligenceAnalyst;2;Tableau;USR065
+BusinessIntelligenceAnalyst;2;Power BI;USR065
+MLEngineer;2;scikit-learn;USR066
+MLEngineer;2;TensorFlow;USR066
+MLEngineer;2;scikit-learn;USR067
+MLEngineer;2;TensorFlow;USR067
+DevSecOpsEngineer;2;SonarQube;USR078
+DevSecOpsEngineer;2;SonarQube;USR082
+DevSecOpsEngineer;2;SonarQube;USR143
+DevSecOpsEngineer;2;SonarQube;USR144
+DevSecOpsEngineer;2;SonarQube;USR054
+DevSecOpsEngineer;2;SonarQube;USR055
+DevSecOpsEngineer;2;SonarQube;USR079
+DevSecOpsEngineer;2;SonarQube;USR080
+ETLDeveloper;2;Informatica;USR070
+ETLDeveloper;2;Talend;USR070
+ETLDeveloper;2;Informatica;USR071
+ETLDeveloper;2;Talend;USR071
+CustomerSupportAgent;1;Zendesk;USR072
+CustomerSupportAgent;1;Freshdesk;USR072
+CustomerSupportAgent;1;Zendesk;USR073
+CustomerSupportAgent;1;Freshdesk;USR073
+TechnicalWriter;1;Confluence;USR074
+TechnicalWriter;1;Google Docs;USR074
+TechnicalWriter;1;Confluence;USR075
+TechnicalWriter;1;Google Docs;USR075
+ContentManager;1;WordPress;USR076
+ContentManager;1;Drupal;USR076
+ContentManager;1;WordPress;USR077
+ContentManager;1;Drupal;USR077
+APIDesigner;2;Swagger;USR078
+APIDesigner;2;Postman;USR078
+APIDesigner;2;Swagger;USR079
+APIDesigner;2;Postman;USR079
+TestManager;2;TestRail;USR080
+TestManager;2;Jira;USR080
+TestManager;2;TestRail;USR081
+TestManager;2;Jira;USR081
+PerformanceEngineer;2;JMeter;USR082
+PerformanceEngineer;2;LoadRunner;USR082
+PerformanceEngineer;2;JMeter;USR083
+PerformanceEngineer;2;LoadRunner;USR083
+CRMAdministrator;2;Salesforce;USR084
+CRMAdministrator;2;Microsoft Dynamics 365;USR084
+CRMAdministrator;2;Salesforce;USR085
+CRMAdministrator;2;Microsoft Dynamics 365;USR085
+VirtualizationSpecialist;2;VMware;USR086
+VirtualizationSpecialist;2;KVM;USR086
+VirtualizationSpecialist;2;VMware;USR087
+VirtualizationSpecialist;2;KVM;USR087
+ConfigurationManager;2;Ansible;USR090
+ConfigurationManager;2;Puppet;USR090
+ConfigurationManager;2;Ansible;USR091
+ConfigurationManager;2;Puppet;USR091
+BigDataEngineer;2;Apache Hadoop;USR092
+BigDataEngineer;2;Apache Spark;USR092
+BigDataEngineer;2;Apache Hadoop;USR093
+BigDataEngineer;2;Apache Spark;USR093
+AIEngineer;2;TensorFlow;USR094
+AIEngineer;2;PyTorch;USR094
+AIEngineer;2;TensorFlow;USR095
+AIEngineer;2;PyTorch;USR095
+EmbeddedDeveloper;2;C;USR096
+EmbeddedDeveloper;2;C++;USR096
+EmbeddedDeveloper;2;C;USR097
+EmbeddedDeveloper;2;C++;USR097
+GameDeveloper;2;Unity;USR098
+GameDeveloper;2;Unreal Engine;USR098
+GameDeveloper;2;Unity;USR099
+GameDeveloper;2;Unreal Engine;USR099
+DeveloperAdvocate;2;GitHub;USR100
+DeveloperAdvocate;2;GitLab;USR100
+DeveloperAdvocate;2;GitHub;USR101
+DeveloperAdvocate;2;GitLab;USR101
+LegalCoordinator;1;Microsoft SharePoint;USR102
+LegalCoordinator;1;DocuSign;USR102
+LegalCoordinator;1;Microsoft SharePoint;USR103
+LegalCoordinator;1;DocuSign;USR103
+ChangeManager;2;ServiceNow;USR104
+ChangeManager;2;Jira;USR104
+ChangeManager;2;ServiceNow;USR105
+ChangeManager;2;Jira;USR105
+KnowledgeManager;2;Confluence;USR106
+KnowledgeManager;2;Microsoft SharePoint;USR106
+KnowledgeManager;2;Confluence;USR107
+KnowledgeManager;2;Microsoft SharePoint;USR107
+SoftwareArchitect;2;AWS;USR108
+SoftwareArchitect;2;Azure;USR108
+SoftwareArchitect;2;AWS;USR109
+SoftwareArchitect;2;Azure;USR109
+ITTrainer;1;Articulate;USR110
+ITTrainer;1;Moodle;USR110
+ITTrainer;1;Articulate;USR111
+ITTrainer;1;Moodle;USR111
+DataPrivacyOfficer;2;OneTrust;USR112
+DataPrivacyOfficer;2;TrustArc;USR112
+DataPrivacyOfficer;2;OneTrust;USR113
+DataPrivacyOfficer;2;TrustArc;USR113
+AIResearcher;2;TensorFlow;USR114
+AIResearcher;2;PyTorch;USR114
+AIResearcher;2;TensorFlow;USR115
+AIResearcher;2;PyTorch;USR115
+BlockchainDeveloper;2;Ethereum;USR116
+BlockchainDeveloper;2;Hyperledger;USR116
+BlockchainDeveloper;2;Ethereum;USR117
+BlockchainDeveloper;2;Hyperledger;USR117
+IOTDeveloper;2;Arduino;USR118
+IOTDeveloper;2;Raspberry Pi;USR118
+IOTDeveloper;2;Arduino;USR119
+IOTDeveloper;2;Raspberry Pi;USR119
+CommunityManager;1;Slack;USR120
+CommunityManager;1;Discord;USR120
+CommunityManager;1;Slack;USR121
+CommunityManager;1;Discord;USR121
+DataEntrySpecialist;1;Excel;USR122
+DataEntrySpecialist;1;Access;USR122
+DataEntrySpecialist;1;Excel;USR123
+DataEntrySpecialist;1;Access;USR123
+ECM_Admin;2;Microsoft SharePoint;USR124
+ECM_Admin;2;Box;USR124
+ECM_Admin;2;Microsoft SharePoint;USR125
+ECM_Admin;2;Box;USR125
+ServiceDeskManager;2;ServiceNow;USR126
+ServiceDeskManager;2;Zendesk;USR126
+ServiceDeskManager;2;ServiceNow;USR127
+ServiceDeskManager;2;Zendesk;USR127
+DigitalMarketingSpecialist;2;Google Analytics;USR128
+DigitalMarketingSpecialist;2;HubSpot;USR128
+DigitalMarketingSpecialist;2;Google Analytics;USR129
+DigitalMarketingSpecialist;2;HubSpot;USR129
+UserResearcher;2;Qualtrics;USR130
+UserResearcher;2;SurveyMonkey;USR130
+UserResearcher;2;Qualtrics;USR131
+UserResearcher;2;SurveyMonkey;USR131
+BusinessConsultant;2;PowerPoint;USR132
+BusinessConsultant;2;Excel;USR132
+BusinessConsultant;2;PowerPoint;USR133
+BusinessConsultant;2;Excel;USR133
+LicensingSpecialist;1;Adobe Creative Cloud;USR134
+LicensingSpecialist;1;Microsoft Office 365;USR134
+LicensingSpecialist;1;Adobe Creative Cloud;USR135
+LicensingSpecialist;1;Microsoft Office 365;USR135
+MobilityManager;2;Intune;USR136
+MobilityManager;2;AirWatch;USR136
+MobilityManager;2;Intune;USR137
+MobilityManager;2;AirWatch;USR137
+DigitalTransformationLead;2;Jira;USR138
+DigitalTransformationLead;2;Miro;USR138
+DigitalTransformationLead;2;Jira;USR139
+DigitalTransformationLead;2;Miro;USR139
+BusinessProcessAnalyst;2;Visio;USR140
+BusinessProcessAnalyst;2;Lucidchart;USR140
+BusinessProcessAnalyst;2;Visio;USR141
+BusinessProcessAnalyst;2;Lucidchart;USR141
+Developer;1;Jira;USR041
+Developer;1;Jira;USR042
+Developer;1;Jira;USR043
+Developer;1;Jira;USR052
+Developer;1;Jira;USR062
+Developer;1;Jira;USR072
+Developer;1;Jira;USR073
+Developer;1;Jira;USR074
+DeveloperAdvocate;2;GitHub;USR041
+DeveloperAdvocate;2;GitHub;USR042
+DeveloperAdvocate;2;GitHub;USR043
+DeveloperAdvocate;2;GitHub;USR052
+DeveloperAdvocate;2;GitHub;USR062
+DeveloperAdvocate;2;GitHub;USR072
+DeveloperAdvocate;2;GitHub;USR064
+DeveloperAdvocate;2;GitHub;USR073
+DeveloperAdvocate;2;GitHub;USR074
+DeveloperAdvocate;2;GitHub;USR050
+DataAnalyst;2;Tableau;USR059
+DataAnalyst;2;Tableau;USR060
+DataAnalyst;2;Tableau;USR056
+DataAnalyst;2;Tableau;USR057
+DataAnalyst;2;Tableau;USR066
+DataAnalyst;2;Microsoft Power BI;USR059
+DataAnalyst;2;Microsoft Power BI;USR060
+DataAnalyst;2;Microsoft Power BI;USR056
+DataAnalyst;2;Microsoft Power BI;USR057
+DataAnalyst;2;Microsoft Power BI;USR066
+DataScientist;2;Python;USR044
+DataScientist;2;Python;USR045
+DataScientist;2;Python;USR108
+DataScientist;2;Python;USR109
+DataScientist;2;Python;USR110
+DataScientist;2;TensorFlow;USR044
+DataScientist;2;TensorFlow;USR045
+DataScientist;2;TensorFlow;USR108
+DataScientist;2;TensorFlow;USR109
+DataScientist;2;TensorFlow;USR110
+DataScientist;2;PyTorch;USR044
+DataScientist;2;PyTorch;USR045
+DataScientist;2;PyTorch;USR108
+DataScientist;2;PyTorch;USR109
+DataScientist;2;PyTorch;USR110
+ServiceAgent;1;ServiceNow;USR129
+ServiceAgent;1;ServiceNow;USR130
+ServiceAgent;1;ServiceNow;USR072
+ServiceAgent;1;ServiceNow;USR073
+ServiceAgent;1;ServiceNow;USR126
+ServiceAgent;1;ServiceNow;USR127
+CustomerSupportAgent;1;Zendesk;USR023
+CustomerSupportAgent;1;Zendesk;USR024
+CustomerSupportAgent;1;Zendesk;USR171
+CustomerSupportAgent;1;Zendesk;USR172
+CustomerSupportAgent;1;Zendesk;USR126
+CustomerSupportAgent;1;Zendesk;USR127
+CustomerSupportAgent;1;Freshdesk;USR023
+CustomerSupportAgent;1;Freshdesk;USR024
+CustomerSupportAgent;1;Freshdesk;USR171
+CustomerSupportAgent;1;Freshdesk;USR172
+CustomerSupportAgent;1;Freshdesk;USR126
+CustomerSupportAgent;1;Freshdesk;USR127
+ITSupportTech;1;ServiceNow;USR023
+ITSupportTech;1;ServiceNow;USR024
+ITSupportTech;1;ServiceNow;USR129
+ITSupportTech;1;ServiceNow;USR130
+ITSupportTech;1;ServiceNow;USR072
+ITSupportTech;1;ServiceNow;USR073
+ServiceDeskManager;2;ServiceNow;USR023
+ServiceDeskManager;2;ServiceNow;USR024
+ServiceDeskManager;2;ServiceNow;USR129
+ServiceDeskManager;2;ServiceNow;USR130
+ServiceDeskManager;2;ServiceNow;USR072
+ServiceDeskManager;2;ServiceNow;USR073
+BusinessAnalyst;2;Microsoft Office 365;USR064
+BusinessAnalyst;2;Microsoft Office 365;USR065
+BusinessAnalyst;2;Microsoft Office 365;USR140
+BusinessAnalyst;2;Microsoft Office 365;USR141
+BusinessAnalyst;2;Microsoft Office 365;USR132
+BusinessAnalyst;2;Microsoft Office 365;USR133
+BusinessAnalyst;2;Tableau;USR064
+BusinessAnalyst;2;Tableau;USR065
+BusinessAnalyst;2;Tableau;USR140
+BusinessAnalyst;2;Tableau;USR141
+BusinessAnalyst;2;Tableau;USR132
+BusinessAnalyst;2;Tableau;USR133
+BusinessIntelligenceAnalyst;2;Tableau;USR046
+BusinessIntelligenceAnalyst;2;Tableau;USR047
+BusinessIntelligenceAnalyst;2;Tableau;USR113
+BusinessIntelligenceAnalyst;2;Tableau;USR114
+BusinessIntelligenceAnalyst;2;Tableau;USR140
+BusinessIntelligenceAnalyst;2;Tableau;USR141
+BusinessIntelligenceAnalyst;2;Power BI;USR046
+BusinessIntelligenceAnalyst;2;Power BI;USR047
+BusinessIntelligenceAnalyst;2;Power BI;USR113
+BusinessIntelligenceAnalyst;2;Power BI;USR114
+BusinessIntelligenceAnalyst;2;Power BI;USR140
+BusinessIntelligenceAnalyst;2;Power BI;USR141
+BusinessProcessAnalyst;2;Visio;USR046
+BusinessProcessAnalyst;2;Visio;USR047
+BusinessProcessAnalyst;2;Visio;USR113
+BusinessProcessAnalyst;2;Visio;USR114
+BusinessProcessAnalyst;2;Visio;USR064
+BusinessProcessAnalyst;2;Visio;USR065
+BusinessProcessAnalyst;2;Visio;USR132
+BusinessProcessAnalyst;2;Visio;USR133
