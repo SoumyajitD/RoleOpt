@@ -15,7 +15,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/role-mining")
+@RequestMapping("/role-mining")
 public class RoleMiningController {
 
     private static final Logger log = LoggerFactory.getLogger(RoleMiningController.class);

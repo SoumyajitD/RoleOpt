@@ -1,0 +1,6 @@
+userId,firstName,lastName,ouId
+U001,John,Doe,OU001
+U002,Jane,Smith,OU001
+U003,Alice,Johnson,OU002
+U004,Bob,Williams,OU002
+U005,Carol,Lee,OU003

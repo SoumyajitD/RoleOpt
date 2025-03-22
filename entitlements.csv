@@ -1,0 +1,7 @@
+entitlementId,name,description,applicationId
+ENT001,CodeRead,Read access to code repositories,APP001
+ENT002,CodeWrite,Write access to code repositories,APP001
+ENT003,HRView,View employee records,APP002
+ENT004,HRManage,Manage employee records,APP002
+ENT005,FinanceView,View financial data,APP003
+ENT006,FinanceEdit,Edit financial data,APP003

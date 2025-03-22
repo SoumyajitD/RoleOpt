@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/upload")
+@RequestMapping("/upload")
 public class UploadController {
 
     private static final Logger log = LoggerFactory.getLogger(UploadController.class);
