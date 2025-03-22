@@ -32,6 +32,18 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { getApplications, getOrganizationalUnits } from '../services/api';
+import {
+  ConfigContainer,
+  ConfigHeader,
+  ConfigTitle,
+  ResetButton,
+  ConfigPaper,
+  StartMiningButton,
+  inputStyles,
+  selectStyles,
+  menuProps,
+  chipStyles
+} from '../styles/RoleMiningConfig.styles';
 
 const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
   const [roleMiningConfig, setRoleMiningConfig] = useState({
@@ -228,44 +240,19 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
     (roleMiningConfig.applications.length > 0 || roleMiningConfig.organizationalUnits.length > 0);
 
   return (
-    <Box sx={{ 
-      width: '100%', 
-      maxWidth: '1200px', 
-      mx: 'auto', 
-      p: 3,
-      backgroundColor: '#F9FAFB',
-      minHeight: 'calc(100vh - 64px)'
-    }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        mb: 4 
-      }}>
-        <Typography variant="h5" sx={{ color: '#1F2937', fontWeight: 600 }}>
+    <ConfigContainer>
+      <ConfigHeader>
+        <ConfigTitle variant="h5">
           Role Mining Configuration
-        </Typography>
-        <Button
+        </ConfigTitle>
+        <ResetButton
           variant="outlined"
           onClick={handleResetFilters}
           startIcon={<RestartAltIcon />}
-          sx={{
-            borderColor: '#6B7280',
-            color: '#6B7280',
-            '&:hover': {
-              backgroundColor: '#F3F4F6',
-              borderColor: '#4B5563',
-              color: '#4B5563',
-            },
-            '&:focus': {
-              outline: 'none',
-              backgroundColor: '#F3F4F6',
-            }
-          }}
         >
           Reset Filters
-        </Button>
-      </Box>
+        </ResetButton>
+      </ConfigHeader>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -275,7 +262,7 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3, backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB' }}>
+          <ConfigPaper>
             <Typography variant="h6" sx={{ color: '#1F2937', mb: 3, fontWeight: 600 }}>
               Filter Configuration
             </Typography>
@@ -333,22 +320,7 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
                                   }} 
                                 />
                               }
-                              sx={{
-                                backgroundColor: '#E5E7EB',
-                                color: '#000000',
-                                maxWidth: '120px',
-                                height: '24px',
-                                '& .MuiChip-label': {
-                                  fontSize: '0.8125rem',
-                                  lineHeight: 1.2,
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                },
-                                '& .MuiChip-deleteIcon': {
-                                  color: '#000000',
-                                  marginRight: '4px',
-                                },
-                              }}
+                              sx={chipStyles}
                             />
                           ))}
                           {remainingCount > 0 && (
@@ -364,68 +336,15 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
                               <Chip 
                                 size="small"
                                 label={`+${remainingCount} more`}
-                                sx={{
-                                  backgroundColor: '#E5E7EB',
-                                  color: '#000000',
-                                  height: '24px',
-                                  fontSize: '0.8125rem',
-                                }}
+                                sx={chipStyles}
                               />
                             </Tooltip>
                           )}
                         </Box>
                       );
                     }}
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#E5E7EB',
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#D1D5DB',
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#1E40AF',
-                      },
-                      minHeight: '56px',
-                      '& .MuiSelect-select': {
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '8px 14px',
-                        minHeight: '56px !important',
-                        '& > div': {
-                          flex: 1,
-                        }
-                      },
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          backgroundColor: '#FFFFFF',
-                          maxHeight: 300,
-                          mt: 1,
-                          '& .MuiMenuItem-root': {
-                            padding: '4px 16px',
-                            height: '40px',
-                            color: '#000000',
-                            '&:hover': {
-                              backgroundColor: '#F3F4F6',
-                            },
-                            '&.Mui-selected': {
-                              backgroundColor: '#E5E7EB',
-                              '&:hover': {
-                                backgroundColor: '#D1D5DB',
-                              }
-                            }
-                          }
-                        }
-                      },
-                      MenuListProps: {
-                        sx: {
-                          backgroundColor: '#FFFFFF',
-                          color: '#000000',
-                        }
-                      }
-                    }}
+                    sx={selectStyles}
+                    MenuProps={menuProps}
                   >
                     {isLoading.applications ? (
                       <MenuItem disabled>
@@ -525,22 +444,7 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
                                   }} 
                                 />
                               }
-                              sx={{
-                                backgroundColor: '#E5E7EB',
-                                color: '#000000',
-                                maxWidth: '120px',
-                                height: '24px',
-                                '& .MuiChip-label': {
-                                  fontSize: '0.8125rem',
-                                  lineHeight: 1.2,
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                },
-                                '& .MuiChip-deleteIcon': {
-                                  color: '#000000',
-                                  marginRight: '4px',
-                                },
-                              }}
+                              sx={chipStyles}
                             />
                           ))}
                           {remainingCount > 0 && (
@@ -556,68 +460,15 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
                               <Chip 
                                 size="small"
                                 label={`+${remainingCount} more`}
-                                sx={{
-                                  backgroundColor: '#E5E7EB',
-                                  color: '#000000',
-                                  height: '24px',
-                                  fontSize: '0.8125rem',
-                                }}
+                                sx={chipStyles}
                               />
                             </Tooltip>
                           )}
                         </Box>
                       );
                     }}
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#E5E7EB',
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#D1D5DB',
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#1E40AF',
-                      },
-                      minHeight: '56px',
-                      '& .MuiSelect-select': {
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '8px 14px',
-                        minHeight: '56px !important',
-                        '& > div': {
-                          flex: 1,
-                        }
-                      },
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          backgroundColor: '#FFFFFF',
-                          maxHeight: 300,
-                          mt: 1,
-                          '& .MuiMenuItem-root': {
-                            padding: '4px 16px',
-                            height: '40px',
-                            color: '#000000',
-                            '&:hover': {
-                              backgroundColor: '#F3F4F6',
-                            },
-                            '&.Mui-selected': {
-                              backgroundColor: '#E5E7EB',
-                              '&:hover': {
-                                backgroundColor: '#D1D5DB',
-                              }
-                            }
-                          }
-                        }
-                      },
-                      MenuListProps: {
-                        sx: {
-                          backgroundColor: '#FFFFFF',
-                          color: '#000000',
-                        }
-                      }
-                    }}
+                    sx={selectStyles}
+                    MenuProps={menuProps}
                   >
                     {isLoading.organizationalUnits ? (
                       <MenuItem disabled>
@@ -676,28 +527,7 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
                   InputProps={{
                     startAdornment: <InputAdornment position="start">#</InputAdornment>,
                   }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      color: '#000000',
-                      backgroundColor: '#FFFFFF',
-                      px: 1,
-                    },
-                    '& .MuiOutlinedInput-root': {
-                      color: '#000000',
-                      '& fieldset': {
-                        borderColor: '#E5E7EB',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#D1D5DB',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#1E40AF',
-                      },
-                    },
-                    '& .MuiInputAdornment-root': {
-                      color: '#000000',
-                    },
-                  }}
+                  sx={inputStyles}
                 />
               </Grid>
 
@@ -713,61 +543,24 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
                   InputProps={{
                     startAdornment: <InputAdornment position="start">#</InputAdornment>,
                   }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      color: '#000000',
-                      backgroundColor: '#FFFFFF',
-                      px: 1,
-                    },
-                    '& .MuiOutlinedInput-root': {
-                      color: '#000000',
-                      '& fieldset': {
-                        borderColor: '#E5E7EB',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#D1D5DB',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#1E40AF',
-                      },
-                    },
-                    '& .MuiInputAdornment-root': {
-                      color: '#000000',
-                    },
-                  }}
+                  sx={inputStyles}
                 />
               </Grid>
             </Grid>
-          </Paper>
+          </ConfigPaper>
           <Box sx={{ 
             display: 'flex', 
             justifyContent: 'center',
             mt: 3
           }}>
-            <Button
+            <StartMiningButton
               variant="contained"
               onClick={handleRunRoleMining}
               disabled={!isValid}
               startIcon={<PlayArrowIcon />}
-              sx={{
-                backgroundColor: '#1E40AF',
-                color: '#FFFFFF',
-                minWidth: '200px',
-                '&:hover': {
-                  backgroundColor: '#1E3A8A',
-                },
-                '&:focus': {
-                  outline: 'none',
-                  backgroundColor: '#1E3A8A',
-                },
-                '&.Mui-disabled': {
-                  backgroundColor: '#E5E7EB',
-                  color: '#9CA3AF',
-                }
-              }}
             >
               Start Role Mining
-            </Button>
+            </StartMiningButton>
           </Box>
         </Grid>
 
@@ -890,7 +683,7 @@ const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
           </Paper>
         </Grid>
       </Grid>
-    </Box>
+    </ConfigContainer>
   );
 };
 
