@@ -61,9 +61,17 @@ public class RoleMiningServiceImpl implements RoleMiningService {
     public List<RoleDTO> mineRoles(RoleMiningFilterDTO filters) {
         log.info("Mining roles with filters: {}", filters);
         
-        // In a real implementation, this would perform actual role mining logic using the uploaded data
-        // For this demonstration, we'll use the mock data generation
-        List<RoleDTO> roles = generateMockRoles(filters);
+        // Instead of using mock data, perform actual role mining with clustering
+        List<RoleDTO> roles;
+        if (!assignments.isEmpty() && !users.isEmpty() && !entitlements.isEmpty()) {
+            log.info("Performing real role mining with {} users, {} entitlements, and {} assignments", 
+                    users.size(), entitlements.size(), assignments.size());
+            roles = performRoleMiningClustering(filters);
+            log.info("Generated {} role(s) through clustering", roles.size());
+        } else {
+            log.warn("No data available for role mining, using mock roles as fallback");
+            roles = generateMockRoles(filters);
+        }
         
         // Store the results
         this.latestResults = roles;
@@ -241,5 +249,262 @@ public class RoleMiningServiceImpl implements RoleMiningService {
         }
         
         return roles;
+    }
+
+    /**
+     * Performs actual role mining using a simple clustering algorithm
+     * This groups users that have similar entitlements together
+     */
+    private List<RoleDTO> performRoleMiningClustering(RoleMiningFilterDTO filters) {
+        List<RoleDTO> roles = new ArrayList<>();
+        
+        log.info("Starting clustering-based role mining");
+        
+        // Step 1: Create a map of user ID to their entitlements
+        Map<String, Set<String>> userEntitlements = new HashMap<>();
+        
+        for (Assignment assignment : assignments) {
+            String userId = assignment.getUser().getUserId();
+            
+            if (!userEntitlements.containsKey(userId)) {
+                userEntitlements.put(userId, new HashSet<>());
+            }
+            
+            for (Entitlement entitlement : assignment.getEntitlements()) {
+                userEntitlements.get(userId).add(entitlement.getEntitlementId());
+            }
+        }
+        
+        log.info("Mapped {} users to their entitlements", userEntitlements.size());
+        
+        // Step 2: Group users by similar entitlement sets
+        Map<String, List<String>> entitlementSetToUsers = new HashMap<>();
+        
+        for (Map.Entry<String, Set<String>> entry : userEntitlements.entrySet()) {
+            String userId = entry.getKey();
+            Set<String> entitlementSet = entry.getValue();
+            
+            // Create a key for the entitlement set
+            String entitlementKey = entitlementSet.stream().sorted().collect(Collectors.joining(","));
+            
+            if (!entitlementSetToUsers.containsKey(entitlementKey)) {
+                entitlementSetToUsers.put(entitlementKey, new ArrayList<>());
+            }
+            
+            entitlementSetToUsers.get(entitlementKey).add(userId);
+        }
+        
+        log.info("Grouped users into {} distinct entitlement sets", entitlementSetToUsers.size());
+        
+        // Step 3: Apply user threshold filter (only keep groups with at least minUsersPerRole)
+        entitlementSetToUsers.entrySet().removeIf(entry -> 
+                entry.getValue().size() < filters.getMinUsersPerRole());
+        
+        log.info("After user threshold filtering, {} groups remain", entitlementSetToUsers.size());
+        
+        // Step 4: Apply permission threshold filter (only keep groups with at most maxPermissionsPerRole)
+        entitlementSetToUsers.entrySet().removeIf(entry -> {
+            String[] entitlementIds = entry.getKey().split(",");
+            return entitlementIds.length > filters.getMaxPermissionsPerRole() || 
+                   (entry.getKey().isEmpty() ? 0 : entitlementIds.length) == 0;
+        });
+        
+        log.info("After permission threshold filtering, {} groups remain", entitlementSetToUsers.size());
+        
+        // Step 5: Filter by applications if specified
+        if (filters.getApplications() != null && !filters.getApplications().isEmpty()) {
+            Set<String> appFilterSet = new HashSet<>(filters.getApplications());
+            
+            entitlementSetToUsers.entrySet().removeIf(entry -> {
+                if (entry.getKey().isEmpty()) return true;
+                
+                String[] entitlementIds = entry.getKey().split(",");
+                
+                boolean keepGroup = false;
+                for (String entitlementId : entitlementIds) {
+                    Entitlement entitlement = entitlements.get(entitlementId);
+                    if (entitlement != null && entitlement.getApplication() != null && 
+                        appFilterSet.contains(entitlement.getApplication().getApplicationId())) {
+                        keepGroup = true;
+                        break;
+                    }
+                }
+                
+                return !keepGroup;
+            });
+            
+            log.info("After application filtering, {} groups remain", entitlementSetToUsers.size());
+        }
+        
+        // Step 6: Filter by organizational units if specified
+        if (filters.getOrganizationalUnits() != null && !filters.getOrganizationalUnits().isEmpty()) {
+            Set<String> ouFilterSet = new HashSet<>(filters.getOrganizationalUnits());
+            
+            entitlementSetToUsers.entrySet().removeIf(entry -> {
+                List<String> userIds = entry.getValue();
+                
+                boolean keepGroup = false;
+                for (String userId : userIds) {
+                    User user = users.get(userId);
+                    if (user != null && user.getOrganizationalUnit() != null && 
+                        ouFilterSet.contains(user.getOrganizationalUnit().getOuId())) {
+                        keepGroup = true;
+                        break;
+                    }
+                }
+                
+                return !keepGroup;
+            });
+            
+            log.info("After OU filtering, {} groups remain", entitlementSetToUsers.size());
+        }
+        
+        // Step 7: Create roles from the remaining groups
+        int roleId = 1;
+        for (Map.Entry<String, List<String>> entry : entitlementSetToUsers.entrySet()) {
+            String entitlementKey = entry.getKey();
+            List<String> userIds = entry.getValue();
+            
+            RoleDTO role = new RoleDTO();
+            role.setId((long) roleId++);
+            
+            // Get all entitlements in this group
+            List<String> entitlementIds = entitlementKey.isEmpty() ? 
+                    Collections.emptyList() : Arrays.asList(entitlementKey.split(","));
+            
+            // Use permissions to determine the role name
+            String roleName = determineRoleName(entitlementIds);
+            role.setName(roleName);
+            
+            // Set user count and users with detailed information
+            role.setUserCount(userIds.size());
+            
+            // Collect detailed user information with format: "UserID (FirstName LastName)"
+            List<String> userDetailsList = new ArrayList<>();
+            for (String userId : userIds) {
+                User user = users.get(userId);
+                if (user != null) {
+                    String userName = user.getFirstName() + " " + user.getLastName();
+                    String userDetail = userId + " (" + userName + ")";
+                    userDetailsList.add(userDetail);
+                }
+            }
+            role.setUsers(userDetailsList);
+            
+            // Set permission count and detailed permissions with format: "AppName: PermissionName"
+            role.setPermissionCount(entitlementIds.size());
+            List<String> permissionDetailsList = new ArrayList<>();
+            for (String entitlementId : entitlementIds) {
+                Entitlement entitlement = entitlements.get(entitlementId);
+                if (entitlement != null) {
+                    String permName = entitlement.getName();
+                    String appName = entitlement.getApplication() != null ? 
+                            entitlement.getApplication().getName() : "Unknown";
+                    
+                    // Check if the permission already contains the app name format
+                    if (!permName.contains(":")) {
+                        String permDetail = appName + ": " + permName;
+                        permissionDetailsList.add(permDetail);
+                    } else {
+                        permissionDetailsList.add(permName);
+                    }
+                }
+            }
+            role.setPermissions(permissionDetailsList);
+            
+            // Set applications
+            Set<String> appNames = entitlementIds.stream()
+                    .map(id -> entitlements.get(id))
+                    .filter(Objects::nonNull)
+                    .map(e -> e.getApplication())
+                    .filter(Objects::nonNull)
+                    .map(a -> a.getName())
+                    .collect(Collectors.toSet());
+            role.setApplications(new ArrayList<>(appNames));
+            
+            // Not AI generated
+            role.setAiGenerated(false);
+            role.setConfidence(0);
+            
+            roles.add(role);
+            
+            log.info("Created role: {}, users: {}, permissions: {}, applications: {}", 
+                    roleName, role.getUserCount(), role.getPermissionCount(), role.getApplications());
+            
+            // Log the details of users and permissions for debugging
+            log.info("Role {} users: {}", roleName, role.getUsers());
+            log.info("Role {} permissions: {}", roleName, role.getPermissions());
+        }
+        
+        return roles;
+    }
+
+    /**
+     * Determine a meaningful name for the role based on its entitlements
+     */
+    private String determineRoleName(List<String> entitlementIds) {
+        // If there are no entitlements, use a default name
+        if (entitlementIds.isEmpty()) {
+            return "Empty Role";
+        }
+        
+        // Get all applications involved
+        Set<String> appNames = new HashSet<>();
+        Set<String> permissionTypes = new HashSet<>();
+        
+        for (String entitlementId : entitlementIds) {
+            Entitlement entitlement = entitlements.get(entitlementId);
+            if (entitlement != null) {
+                if (entitlement.getApplication() != null) {
+                    appNames.add(entitlement.getApplication().getName());
+                }
+                
+                // Extract permission type (e.g., "View", "Edit", "Admin", etc.)
+                String name = entitlement.getName();
+                if (name != null) {
+                    // Some common patterns: AppName:Permission, Permission
+                    if (name.contains(":")) {
+                        String permission = name.substring(name.indexOf(":") + 1).trim();
+                        permissionTypes.add(permission);
+                    } else if (name.contains("View")) {
+                        permissionTypes.add("View");
+                    } else if (name.contains("Edit") || name.contains("Write")) {
+                        permissionTypes.add("Edit");
+                    } else if (name.contains("Admin") || name.contains("Manage")) {
+                        permissionTypes.add("Admin");
+                    } else if (name.contains("Read")) {
+                        permissionTypes.add("Read");
+                    }
+                }
+            }
+        }
+        
+        // Build the role name
+        StringBuilder roleName = new StringBuilder();
+        
+        // Add applications
+        if (!appNames.isEmpty()) {
+            roleName.append(String.join("/", appNames));
+        } else {
+            roleName.append("Multi-App");
+        }
+        
+        // Add permission types
+        if (!permissionTypes.isEmpty()) {
+            roleName.append(" ");
+            if (permissionTypes.contains("Admin") || permissionTypes.contains("Manage")) {
+                roleName.append("Administrator");
+            } else if (permissionTypes.contains("Edit") || permissionTypes.contains("Write")) {
+                roleName.append("Editor");
+            } else if (permissionTypes.contains("View") || permissionTypes.contains("Read")) {
+                roleName.append("Viewer");
+            } else {
+                roleName.append("User");
+            }
+        } else {
+            roleName.append(" User");
+        }
+        
+        return roleName.toString();
     }
 } 

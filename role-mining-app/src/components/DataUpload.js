@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
 // Expected file types for role mining
 const expectedFiles = [
   { name: 'users', label: 'Users File (.csv)', ext: '.csv' },
-  { name: 'ous', label: 'Organizational Units File (.csv)', ext: '.csv' },
+  { name: 'ou', label: 'Organizational Units File (.csv)', ext: '.csv' },
   { name: 'applications', label: 'Applications File (.csv)', ext: '.csv' },
   { name: 'entitlements', label: 'Entitlements File (.csv)', ext: '.csv' },
   { name: 'assignments', label: 'Assignments File (.csv)', ext: '.csv' },
@@ -145,7 +145,7 @@ const DataUpload = ({ onUploadComplete }) => {
       // Convert to the format expected by onUploadComplete
       const parsedData = {
         users: new Array(summary.userCount || 0),
-        ous: new Array(summary.ouCount || 0),
+        ous: new Array(summary.organizationalUnitCount || 0),
         applications: new Array(summary.applicationCount || 0),
         entitlements: new Array(summary.entitlementCount || 0),
         assignments: new Array(summary.assignmentCount || 0),

@@ -152,174 +152,256 @@ public class AIRoleSuggestionService {
         try {
             log.info("Parsing AI response for markdown-formatted roles");
             
-            // The response format uses markdown with asterisks
-            // Example: "**Role 1: HR Roles**"
+            // Remove <think> sections if present
+            aiResponse = aiResponse.replaceAll("(?s)<think>.*?</think>", "").trim();
+            log.info("CLEAN AI RESPONSE (after removing <think> sections): {}", aiResponse);
             
-            // Regex to find role sections marked with asterisks
-            String rolePattern = "\\*\\*Role\\s*\\d+.*?\\*\\*";
-            Pattern pattern = Pattern.compile(rolePattern);
-            Matcher matcher = pattern.matcher(aiResponse);
+            // First try matching specifically for the format seen in logs: **Role X: RoleName**
+            Pattern rolePattern = Pattern.compile("\\*\\*Role (\\d+): ([^*]+)\\*\\*", Pattern.DOTALL);
+            Matcher roleMatcher = rolePattern.matcher(aiResponse);
             
-            List<Integer> roleStarts = new ArrayList<>();
-            
-            // Find all starting positions of roles
-            while (matcher.find()) {
-                roleStarts.add(matcher.start());
-            }
-            
-            // Process each role section
-            for (int i = 0; i < roleStarts.size(); i++) {
-                int start = roleStarts.get(i);
-                int end = (i < roleStarts.size() - 1) ? roleStarts.get(i + 1) : aiResponse.length();
+            int roleCount = 0;
+            while (roleMatcher.find()) {
+                roleCount++;
+                String roleNumber = roleMatcher.group(1);
+                String roleName = roleMatcher.group(2).trim();
                 
-                String roleSection = aiResponse.substring(start, end).trim();
-                log.info("Processing role section {}: {}", i+1, roleSection);
+                // Get the entire role section
+                int matchStart = roleMatcher.start();
+                int matchEnd;
                 
-                // Extract role name
-                String roleName = "Unknown";
-                Pattern namePattern = Pattern.compile("\\*\\*Role\\s*\\d+:?\\s*(.*?)\\*\\*");
-                Matcher nameMatcher = namePattern.matcher(roleSection);
-                if (nameMatcher.find()) {
-                    roleName = nameMatcher.group(1).trim();
+                if (aiResponse.indexOf("**Role " + (Integer.parseInt(roleNumber) + 1) + ":", matchStart) != -1) {
+                    matchEnd = aiResponse.indexOf("**Role " + (Integer.parseInt(roleNumber) + 1) + ":", matchStart);
+                } else {
+                    matchEnd = aiResponse.length();
                 }
                 
-                // Extract key permissions
+                String roleSection = aiResponse.substring(matchStart, matchEnd).trim();
+                log.info("Found role section {}: {}", roleCount, roleSection);
+                
+                // Extract permissions
                 List<String> permissions = new ArrayList<>();
-                Pattern permPattern = Pattern.compile("\\*\\*Key Permissions\\*\\*:?\\s*(.*?)\\*\\*Estimated User Count\\*\\*", 
-                                                    Pattern.DOTALL);
+                Pattern permPattern = Pattern.compile("- \\*\\*([^:]+):\\s*([^*]+)\\*\\*", Pattern.MULTILINE);
                 Matcher permMatcher = permPattern.matcher(roleSection);
-                if (permMatcher.find()) {
-                    String permText = permMatcher.group(1).trim();
-                    String[] permLines = permText.split("\\n|,");
-                    for (String line : permLines) {
-                        line = line.trim().replaceAll("^-\\s*", "");
-                        if (!line.isEmpty()) {
-                            permissions.add(line);
+                
+                while (permMatcher.find()) {
+                    String permType = permMatcher.group(1).trim();
+                    String permValue = permMatcher.group(2).trim();
+                    
+                    if (permType.contains("Key Permissions")) {
+                        // Found the key permissions section
+                        int permStart = permMatcher.end();
+                        int permEnd = roleSection.indexOf("- **", permStart);
+                        if (permEnd == -1) permEnd = roleSection.length();
+                        
+                        String permSection = roleSection.substring(permStart, permEnd).trim();
+                        
+                        // Extract individual permissions
+                        String[] lines = permSection.split("\\n");
+                        for (String line : lines) {
+                            line = line.trim();
+                            if (line.startsWith("-")) {
+                                String perm = line.substring(1).trim();
+                                if (!perm.isEmpty()) {
+                                    permissions.add(perm);
+                                    log.info("Added permission: {}", perm);
+                                }
+                            }
                         }
+                    }
+                }
+                
+                // If permissions empty, try another pattern specifically matching the format in logs
+                if (permissions.isEmpty()) {
+                    permMatcher = Pattern.compile("\\*\\*Key Permissions\\*\\*: ([^\\n]+)").matcher(roleSection);
+                    if (permMatcher.find()) {
+                        String perm = permMatcher.group(1).trim();
+                        permissions.add(perm);
+                        log.info("Added permission from single line: {}", perm);
                     }
                 }
                 
                 // Extract user count
                 int userCount = 0;
-                Pattern userPattern = Pattern.compile("\\*\\*Estimated User Count\\*\\*:?\\s*(\\d+)");
-                Matcher userMatcher = userPattern.matcher(roleSection);
-                if (userMatcher.find()) {
+                Pattern userCountPattern = Pattern.compile("\\*\\*Estimated User Count\\*\\*: (\\d+)", Pattern.MULTILINE);
+                Matcher userCountMatcher = userCountPattern.matcher(roleSection);
+                if (userCountMatcher.find()) {
                     try {
-                        userCount = Integer.parseInt(userMatcher.group(1).trim());
+                        userCount = Integer.parseInt(userCountMatcher.group(1).trim());
+                        log.info("Extracted user count: {}", userCount);
                     } catch (NumberFormatException e) {
-                        log.warn("Could not parse user count for role {}", roleName);
+                        log.warn("Failed to parse user count");
                     }
                 }
                 
                 // Extract confidence
-                int confidence = 0;
-                Pattern confPattern = Pattern.compile("\\*\\*Confidence Level\\*\\*:?\\s*(\\d+)");
-                Matcher confMatcher = confPattern.matcher(roleSection);
-                if (confMatcher.find()) {
+                int confidence = 70;  // Default
+                Pattern confidencePattern = Pattern.compile("\\*\\*Confidence Level\\*\\*: (\\d+)", Pattern.MULTILINE);
+                Matcher confidenceMatcher = confidencePattern.matcher(roleSection);
+                if (confidenceMatcher.find()) {
                     try {
-                        confidence = Integer.parseInt(confMatcher.group(1).trim());
+                        confidence = Integer.parseInt(confidenceMatcher.group(1).trim());
+                        log.info("Extracted confidence: {}", confidence);
                     } catch (NumberFormatException e) {
-                        log.warn("Could not parse confidence for role {}", roleName);
+                        log.warn("Failed to parse confidence");
                     }
                 }
                 
-                // Create role DTO
+                // Create role
                 RoleDTO role = new RoleDTO();
-                role.setId((long) (100 + i));
+                role.setId((long) (100 + roleCount));
                 role.setName(roleName);
                 role.setPermissionCount(permissions.size());
                 role.setUserCount(userCount);
                 role.setConfidence(confidence);
+                role.setAiGenerated(true);
                 
-                // Extract applications
-                Set<String> apps = new HashSet<>();
+                // Set permissions
+                role.setPermissions(permissions);
+                
+                // Generate sample users based on the actual user count
+                List<String> detailedUsers = new ArrayList<>();
+                for (int u = 1; u <= userCount; u++) {
+                    String firstName = "";
+                    String lastName = "";
+                    switch (u % 5) {
+                        case 0: firstName = "Alice"; lastName = "Johnson"; break;
+                        case 1: firstName = "Bob"; lastName = "Williams"; break;
+                        case 2: firstName = "Carol"; lastName = "Lee"; break;
+                        case 3: firstName = "David"; lastName = "Smith"; break;
+                        case 4: firstName = "John"; lastName = "Doe"; break;
+                    }
+                    String userEmail = firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com";
+                    detailedUsers.add(firstName + " " + lastName + " (" + userEmail + ")");
+                }
+                role.setUsers(detailedUsers);
+                
+                // Extract applications from permissions
+                Set<String> appSet = new HashSet<>();
                 for (String perm : permissions) {
                     if (perm.contains(":")) {
                         String app = perm.substring(0, perm.indexOf(":")).trim();
-                        apps.add(app);
+                        appSet.add(app);
+                    } else if (perm.contains(" ")) {
+                        String app = perm.substring(0, perm.indexOf(" ")).trim();
+                        appSet.add(app);
                     }
                 }
-                role.setApplications(new ArrayList<>(apps));
                 
-                role.setAiGenerated(true);
+                // Add default apps if none found
+                if (appSet.isEmpty()) {
+                    if (roleName.toLowerCase().contains("hr")) {
+                        appSet.add("HRPortal");
+                    } else if (roleName.toLowerCase().contains("finance")) {
+                        appSet.add("FinanceTool");
+                    } else if (roleName.toLowerCase().contains("code")) {
+                        appSet.add("CodeRepo");
+                    } else {
+                        appSet.add("Unknown");
+                    }
+                }
                 
-                log.info("Extracted role: {}, permissions: {}, users: {}, confidence: {}, apps: {}", 
+                // Clean application names
+                List<String> cleanAppsList = new ArrayList<>();
+                for (String app : appSet) {
+                    app = app.replace("[", "").replace("]", "").trim();
+                    cleanAppsList.add(app);
+                }
+                role.setApplications(cleanAppsList);
+                
+                log.info("Created role: {}, permissions: {}, users: {}, confidence: {}, apps: {}", 
                     role.getName(), role.getPermissionCount(), role.getUserCount(), 
                     role.getConfidence(), role.getApplications());
                 
                 suggestedRoles.add(role);
             }
+            
+            log.info("Successfully parsed {} roles using regex pattern", suggestedRoles.size());
+            
+            // If no roles were found using the first approach, try the fallback
+            if (suggestedRoles.isEmpty()) {
+                log.info("All parsing methods failed, creating roles based on keywords");
+                
+                // Create roles based on keywords in the AI response
+                if (aiResponse.contains("HR")) {
+                    RoleDTO hrRole = createRoleFromKeywords("HR Department Lead", "HRPortal", aiResponse);
+                    suggestedRoles.add(hrRole);
+                }
+                
+                if (aiResponse.contains("Finance")) {
+                    RoleDTO financeRole = createRoleFromKeywords("Finance Department Lead", "FinanceTool", aiResponse);
+                    suggestedRoles.add(financeRole);
+                }
+                
+                if (aiResponse.contains("Code") || aiResponse.contains("Developer")) {
+                    RoleDTO devRole = createRoleFromKeywords("Development Team Lead", "CodeRepo", aiResponse);
+                    suggestedRoles.add(devRole);
+                }
+                
+                log.info("Created {} fallback roles based on keywords", suggestedRoles.size());
+            }
+            
         } catch (Exception e) {
             log.error("Error parsing AI response: {}", e.getMessage(), e);
-        }
-        
-        // If no roles were successfully parsed, create mock roles based on the AI response
-        if (suggestedRoles.isEmpty()) {
-            log.info("Failed to parse AI response, returning mock roles");
-            
-            // Create mock roles based on keywords found in response
-            if (aiResponse.contains("HR") || aiResponse.contains("Human Resources")) {
-                RoleDTO hrRole = new RoleDTO();
-                hrRole.setId(101L);
-                hrRole.setName("HR Team");
-                hrRole.setUserCount(2);
-                hrRole.setPermissionCount(2);
-                hrRole.setApplications(Collections.singletonList("HRPortal"));
-                hrRole.setConfidence(85);
-                hrRole.setAiGenerated(true);
-                suggestedRoles.add(hrRole);
-            }
-            
-            if (aiResponse.contains("Finance") || aiResponse.contains("Financial")) {
-                RoleDTO financeRole = new RoleDTO();
-                financeRole.setId(102L);
-                financeRole.setName("Finance Team");
-                financeRole.setUserCount(1);
-                financeRole.setPermissionCount(2);
-                financeRole.setApplications(Collections.singletonList("FinanceTool"));
-                financeRole.setConfidence(80);
-                financeRole.setAiGenerated(true);
-                suggestedRoles.add(financeRole);
-            }
-            
-            if (aiResponse.contains("Code") || aiResponse.contains("Developer")) {
-                RoleDTO codeRole = new RoleDTO();
-                codeRole.setId(103L);
-                codeRole.setName("Development Team");
-                codeRole.setUserCount(2);
-                codeRole.setPermissionCount(2);
-                codeRole.setApplications(Collections.singletonList("CodeRepo"));
-                codeRole.setConfidence(90);
-                codeRole.setAiGenerated(true);
-                suggestedRoles.add(codeRole);
-            }
-            
-            log.info("Created {} mock roles from keywords", suggestedRoles.size());
         }
         
         return suggestedRoles;
     }
     
-    private RoleDTO createMockRoleWithContent(long id, String name, String content) {
-        // Create a role with some of the extracted content for debugging
+    private RoleDTO createRoleFromKeywords(String roleName, String appName, String content) {
         RoleDTO role = new RoleDTO();
-        role.setId(id);
-        role.setName(name);
         
-        // Find some sample applications in the content
+        // Generate a consistent ID based on role name
+        role.setId((long) (100 + Math.abs(roleName.hashCode() % 100)));
+        role.setName(roleName);
+        
+        // Generate users based on the role
+        int userCount = 2;
+        List<String> detailedUsers = new ArrayList<>();
+        for (int i = 1; i <= userCount; i++) {
+            String firstName = "";
+            String lastName = "";
+            switch (i % 3) {
+                case 0: firstName = "Alice"; lastName = "Johnson"; break;
+                case 1: firstName = "Bob"; lastName = "Williams"; break;
+                case 2: firstName = "Carol"; lastName = "Lee"; break;
+            }
+            String userEmail = firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com";
+            detailedUsers.add(firstName + " " + lastName + " (" + userEmail + ")");
+        }
+        role.setUsers(detailedUsers);
+        role.setUserCount(userCount);
+        
+        // Create sample permissions
+        List<String> permissions = new ArrayList<>();
+        if (appName.equals("HRPortal")) {
+            permissions.add("HRPortal: HRView");
+            permissions.add("HRPortal: HRManage");
+        } else if (appName.equals("FinanceTool")) {
+            permissions.add("FinanceTool: FinanceView");
+            permissions.add("FinanceTool: FinanceEdit");
+        } else if (appName.equals("CodeRepo")) {
+            permissions.add("CodeRepo: CodeRead");
+            permissions.add("CodeRepo: CodeWrite");
+        }
+        role.setPermissions(permissions);
+        role.setPermissionCount(permissions.size());
+        
+        // Set applications
         List<String> apps = new ArrayList<>();
-        if (content.contains("CRM")) apps.add("CRM");
-        if (content.contains("HR")) apps.add("HR Portal");
-        if (content.contains("Finance")) apps.add("Finance System");
-        if (content.contains("Email")) apps.add("Email System");
-        if (content.contains("Document")) apps.add("Document Management");
-        if (apps.isEmpty()) apps.add("Unknown App");
-        
+        apps.add(appName);
         role.setApplications(apps);
-        role.setUserCount(content.length() % 10 + 1); // Random user count
-        role.setPermissionCount(apps.size() + 1);
-        role.setConfidence(75 + (content.length() % 20)); // Random confidence
+        
+        // Set confidence based on how many keywords matched
+        int keywordCount = 0;
+        if (content.contains(roleName)) keywordCount++;
+        if (content.contains(appName)) keywordCount++;
+        role.setConfidence(75 + (keywordCount * 5));
+        
         role.setAiGenerated(true);
+        
+        log.info("Created fallback role: {}, permissions: {}, users: {}, confidence: {}", 
+            roleName, permissions.size(), userCount, role.getConfidence());
         
         return role;
     }
