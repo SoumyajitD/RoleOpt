@@ -1,63 +1,168 @@
 import { styled } from '@mui/material/styles';
-import { Box, Paper, Button, Typography } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  FormControl,
+  Select,
+  Chip,
+  OutlinedInput,
+} from '@mui/material';
 
 // Styled components
-export const ConfigContainer = styled(Box)(({ theme }) => ({
-  width: '100%',
+export const ConfigContainer = styled(Box)({
+  padding: '32px',
+  backgroundColor: '#FFFFFF',
+  borderRadius: '8px',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
   maxWidth: '1200px',
   margin: '0 auto',
-  padding: theme.spacing(3),
-  backgroundColor: '#F9FAFB',
-  minHeight: 'calc(100vh - 64px)'
-}));
+});
 
-export const ConfigHeader = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: theme.spacing(4)
-}));
+export const ConfigHeader = styled(Box)({
+  marginBottom: '32px',
+});
 
 export const ConfigTitle = styled(Typography)({
-  color: '#1F2937',
-  fontWeight: 600
+  color: '#000000',
+  marginBottom: '8px',
 });
 
-export const ResetButton = styled(Button)({
-  borderColor: '#6B7280',
-  color: '#6B7280',
-  '&:hover': {
-    backgroundColor: '#F3F4F6',
-    borderColor: '#4B5563',
-    color: '#4B5563',
+export const ConfigDescription = styled(Typography)({
+  color: '#000000',
+});
+
+export const ConfigSection = styled(Box)({
+  marginBottom: '32px',
+});
+
+export const SectionTitle = styled(Typography)({
+  color: '#000000',
+  marginBottom: '8px',
+});
+
+export const SectionDescription = styled(Typography)({
+  color: '#000000',
+  marginBottom: '16px',
+});
+
+export const FormRow = styled(Box)({
+  marginBottom: '24px',
+});
+
+export const FormGroup = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+});
+
+export const SelectContainer = styled(Box)({
+  width: '100%',
+});
+
+export const StyledFormControl = styled(FormControl)({
+  width: '100%',
+  '& .MuiInputLabel-root': {
+    color: '#000000',
   },
-  '&:focus': {
-    outline: 'none',
-    backgroundColor: '#F3F4F6',
-  }
+  '& .MuiOutlinedInput-root': {
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#1E40AF',
+    },
+  },
 });
 
-export const ConfigPaper = styled(Paper)({
-  padding: '24px',
-  backgroundColor: '#FFFFFF',
-  border: '1px solid #E5E7EB'
+export const StyledOutlinedInput = styled(OutlinedInput)({
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#E5E7EB',
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#9CA3AF',
+  },
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#1E40AF',
+  },
+});
+
+export const StyledSelect = styled(Select)({
+  '& .MuiSelect-select': {
+    padding: '12px',
+    minHeight: '56px !important',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+});
+
+export const ChipContainer = styled(Box)({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px',
+});
+
+export const StyledChip = styled(Chip)({
+  backgroundColor: '#F3F4F6',
+  color: '#000000',
+  '& .MuiChip-deleteIcon': {
+    color: '#6B7280',
+    '&:hover': {
+      color: '#EF4444',
+    },
+  },
+});
+
+export const StyledTextField = styled(TextField)({
+  '& .MuiInputLabel-root': {
+    color: '#000000',
+    '&.Mui-focused': {
+      color: '#1E40AF',
+    },
+  },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': {
+      borderColor: '#E5E7EB',
+    },
+    '&:hover fieldset': {
+      borderColor: '#9CA3AF',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#1E40AF',
+    },
+  },
+  '& .MuiInputBase-input': {
+    color: '#000000',
+  },
+  '& .MuiFormHelperText-root': {
+    color: '#EF4444',
+    '&.Mui-error': {
+      color: '#EF4444',
+    },
+  },
 });
 
 export const StartMiningButton = styled(Button)({
   backgroundColor: '#1E40AF',
   color: '#FFFFFF',
-  minWidth: '200px',
+  padding: '8px 24px',
   '&:hover': {
-    backgroundColor: '#1E3A8A',
-  },
-  '&:focus': {
-    outline: 'none',
     backgroundColor: '#1E3A8A',
   },
   '&.Mui-disabled': {
     backgroundColor: '#E5E7EB',
     color: '#9CA3AF',
-  }
+  },
+});
+
+export const ResetButton = styled(Button)({
+  color: '#1E40AF',
+  borderColor: '#1E40AF',
+  padding: '8px 24px',
+  '&:hover': {
+    backgroundColor: 'rgba(30, 64, 175, 0.04)',
+    borderColor: '#1E3A8A',
+  },
 });
 
 // Common styles for inputs

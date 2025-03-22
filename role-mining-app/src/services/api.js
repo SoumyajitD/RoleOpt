@@ -1,5 +1,13 @@
 const API_BASE_URL = '/api';
 
+const REQUIRED_FILES = [
+  'users.csv',
+  'ou.csv',
+  'applications.csv',
+  'entitlements.csv',
+  'assignment.csv',
+];
+
 // Mock data for testing
 const mockSummary = {
   users: {
@@ -50,13 +58,24 @@ const mockSummary = {
 };
 
 export const uploadFiles = async (files) => {
-  // Simulating file upload delay
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Files uploaded:', files);
-      resolve(true);
-    }, 2000);
-  });
+  // Check if exactly 5 files are uploaded
+  if (files.length !== 5) {
+    throw new Error(`Please upload exactly 5 CSV files. You uploaded ${files.length} files.`);
+  }
+
+  // Check if all files are CSV files
+  const nonCsvFiles = files.filter(file => !file.name.toLowerCase().endsWith('.csv'));
+  if (nonCsvFiles.length > 0) {
+    throw new Error('All files must be CSV files.');
+  }
+
+  // Simulate file upload delay
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Log the uploaded files
+  console.log('Uploaded files:', files.map(f => f.name));
+  
+  return { success: true };
 };
 
 export const getDataSummary = async () => {

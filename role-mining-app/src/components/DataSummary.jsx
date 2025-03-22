@@ -135,7 +135,7 @@ const DataSummary = ({ summary, onReupload, onStartRoleMining }) => {
             onClick={onStartRoleMining}
             startIcon={<PlayArrowIcon />}
           >
-            Start Role Mining
+            Set Configurations
           </StartMiningButton>
         </Box>
       </SummaryHeader>

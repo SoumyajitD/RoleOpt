@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { BoxesLoader } from 'react-awesome-loaders';
+import { ScaleLoader } from 'react-spinners';
 import { uploadFiles, getDataSummary } from '../services/api';
 import RoleMiningConfig from './RoleMiningConfig';
 import DataSummary from './DataSummary';
@@ -149,13 +149,15 @@ const RoleMiningContainer = () => {
   if (isLoading) {
     return (
       <LoadingContainer>
-        <BoxesLoader
-          boxColor="#1E40AF"
-          style={{ marginBottom: "20px" }}
-          desktopSize="128px"
-          mobileSize="80px"
+        <ScaleLoader
+          color="#1E40AF"
+          height={50}
+          width={6}
+          radius={2}
+          margin={2}
+          speedMultiplier={0.8}
         />
-        <LoadingText variant="body1">
+        <LoadingText variant="h6" sx={{ mt: 3 }}>
           Processing your files...
         </LoadingText>
       </LoadingContainer>

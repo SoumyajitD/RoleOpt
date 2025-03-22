@@ -5,15 +5,19 @@ export const SummaryContainer = styled(Box)({
   width: '100%',
   maxWidth: '1400px',
   margin: '0 auto',
-  padding: '16px',
-  backgroundColor: '#F9FAFB'
+  padding: '32px',
+  backgroundColor: '#F9FAFB',
+  boxSizing: 'border-box',
 });
 
 export const SummaryHeader = styled(Box)({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: '32px'
+  marginBottom: '32px',
+  width: '100%',
+  padding: '0',
+  boxSizing: 'border-box',
 });
 
 export const SummaryTitle = styled(Typography)({
@@ -50,10 +54,12 @@ export const DataTableContainer = styled(Paper)({
   border: '1px solid #E5E7EB',
   borderLeft: '4px solid #1E40AF',
   transition: 'all 0.3s ease',
-  borderRadius: '4px',
+  borderRadius: '8px',
+  width: '100%',
+  boxSizing: 'border-box',
   '&:hover': {
     backgroundColor: '#F9FAFB',
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.05)',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
   }
 });
 
@@ -63,12 +69,14 @@ export const TableHeaderCell = styled(TableCell)({
   textTransform: 'capitalize',
   borderBottom: '1px solid #E5E7EB',
   whiteSpace: 'nowrap',
-  backgroundColor: '#F9FAFB'
+  backgroundColor: '#F9FAFB',
+  padding: '16px',
 });
 
 export const TableBodyCell = styled(TableCell)({
   color: '#374151',
-  borderBottom: '1px solid #E5E7EB'
+  borderBottom: '1px solid #E5E7EB',
+  padding: '16px',
 });
 
 export const ExpandButton = styled(Button)({
@@ -108,6 +116,7 @@ export const TableDescription = styled(Typography)({
 export const ProcessedStatus = styled(Box)({
   display: 'flex',
   alignItems: 'center',
+  width: '100%',
   '& .MuiSvgIcon-root': {
     color: '#10B981',
     marginRight: '8px'

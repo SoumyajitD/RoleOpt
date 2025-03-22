@@ -1,690 +1,583 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
+import {
+  Box,
+  Typography,
   Button,
   TextField,
-  Autocomplete,
   FormControl,
   InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  FormHelperText,
-  Tooltip,
-  Chip,
-  Grid,
   Select,
   MenuItem,
-  CircularProgress,
-  Alert,
+  Chip,
+  OutlinedInput,
+  FormHelperText,
   Checkbox,
   ListItemText,
-  Collapse,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import DeleteIcon from '@mui/icons-material/Delete';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { getApplications, getOrganizationalUnits } from '../services/api';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ConfigContainer,
   ConfigHeader,
   ConfigTitle,
-  ResetButton,
-  ConfigPaper,
+  ConfigDescription,
+  ConfigSection,
+  SectionTitle,
+  SectionDescription,
+  FormRow,
+  FormGroup,
+  SelectContainer,
+  ChipContainer,
+  StyledChip,
+  StyledSelect,
+  StyledTextField,
   StartMiningButton,
-  inputStyles,
-  selectStyles,
-  menuProps,
-  chipStyles
+  ResetButton,
+  StyledFormControl,
+  StyledOutlinedInput,
 } from '../styles/RoleMiningConfig.styles';
+import { getApplications, getOrganizationalUnits } from '../services/api';
+import RolesVisualizer from './RolesVisualizer';
 
-const RoleMiningConfig = ({ summary, onRunRoleMining }) => {
-  const [roleMiningConfig, setRoleMiningConfig] = useState({
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      when: "beforeChildren",
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const sectionVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.3 }
+  }
+};
+
+const LoadingSpinner = () => (
+  <motion.div
+    style={{
+      width: 24,
+      height: 24,
+      borderRadius: '50%',
+      border: '2px solid #E5E7EB',
+      borderTopColor: '#1E40AF',
+      margin: '0 auto',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+    animate={{ rotate: 360 }}
+    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+  />
+);
+
+const RoleMiningConfig = ({ onRunRoleMining }) => {
+  const [config, setConfig] = useState({
     applications: [],
     organizationalUnits: [],
-    minEntitlements: 1,
-    maxEntitlements: 10,
+    usersPerRole: '',
+    permissionsPerRole: '',
+    enableAI: false,
   });
-  const [configErrors, setConfigErrors] = useState({});
-  const [aiSuggestions, setAiSuggestions] = useState(null);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const [error, setError] = useState(null);
-  
-  // New state for dropdown options
-  const [applicationOptions, setApplicationOptions] = useState([]);
-  const [ouOptions, setOUOptions] = useState([]);
-  const [isLoading, setIsLoading] = useState({
+
+  const [errors, setErrors] = useState({
+    usersPerRole: false,
+    permissionsPerRole: false,
+  });
+
+  const [applications, setApplications] = useState([]);
+  const [organizationalUnits, setOrganizationalUnits] = useState([]);
+  const [loading, setLoading] = useState({
     applications: false,
-    organizationalUnits: false
+    organizationalUnits: false,
   });
 
-  // New state for AI suggestions expansion
-  const [isAISuggestionsExpanded, setIsAISuggestionsExpanded] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
-  // Fetch data when component mounts
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading({ applications: true, organizationalUnits: true });
-        setError(null);
-
-        // Fetch applications
+        setLoading({ applications: true, organizationalUnits: true });
         const [appsData, ousData] = await Promise.all([
           getApplications(),
           getOrganizationalUnits()
         ]);
-
-        setApplicationOptions(appsData);
-        setOUOptions(ousData);
-      } catch (err) {
-        setError('Failed to fetch dropdown options. Please try again later.');
-        console.error('Error fetching options:', err);
+        setApplications(appsData);
+        setOrganizationalUnits(ousData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
       } finally {
-        setIsLoading({ applications: false, organizationalUnits: false });
+        setLoading({ applications: false, organizationalUnits: false });
       }
     };
 
     fetchData();
   }, []);
 
-  // Add effect to fetch suggestions when expanded
-  useEffect(() => {
-    if (isAISuggestionsExpanded && !aiSuggestions && !isLoadingSuggestions) {
-      handleGetAISuggestions();
-    }
-  }, [isAISuggestionsExpanded]);
-
   const handleConfigChange = (field, value) => {
-    let errors = { ...configErrors };
-    
-    if (['minEntitlements', 'maxEntitlements'].includes(field)) {
-      if (value && (!Number.isInteger(Number(value)) || Number(value) <= 0)) {
-        errors[field] = 'Please enter a positive integer';
-      } else {
-        delete errors[field];
-      }
-    }
+    setConfig(prev => ({ ...prev, [field]: value }));
+  };
 
-    setConfigErrors(errors);
-    setRoleMiningConfig(prev => ({
+  const handleNumberChange = (field, value) => {
+    const numValue = value === '' ? '' : Number(value);
+    handleConfigChange(field, numValue);
+    
+    // Validate number inputs
+    setErrors(prev => ({
       ...prev,
-      [field]: value
+      [field]: numValue !== '' && (isNaN(numValue) || numValue < 0 || !Number.isInteger(numValue))
     }));
   };
 
-  const handleRunRoleMining = () => {
-    // Validation
-    const errors = {};
-    if (roleMiningConfig.minEntitlements && 
-        (!Number.isInteger(Number(roleMiningConfig.minEntitlements)) || 
-         Number(roleMiningConfig.minEntitlements) <= 0)) {
-      errors.minEntitlements = 'Please enter a positive integer';
-    }
-    if (roleMiningConfig.maxEntitlements && 
-        (!Number.isInteger(Number(roleMiningConfig.maxEntitlements)) || 
-         Number(roleMiningConfig.maxEntitlements) <= 0)) {
-      errors.maxEntitlements = 'Please enter a positive integer';
-    }
-    if (roleMiningConfig.minEntitlements > roleMiningConfig.maxEntitlements) {
-      errors.minEntitlements = 'Minimum entitlements cannot be greater than maximum';
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setConfigErrors(errors);
-      return;
-    }
-
-    onRunRoleMining(roleMiningConfig);
+  const handleApplicationChange = (event) => {
+    const value = event.target.value;
+    handleConfigChange('applications', value);
   };
 
-  const handleResetFilters = () => {
-    setRoleMiningConfig({
+  const handleOUChange = (event) => {
+    const value = event.target.value;
+    handleConfigChange('organizationalUnits', value);
+  };
+
+  const handleDeleteApplication = (valueToDelete) => {
+    handleConfigChange(
+      'applications',
+      config.applications.filter((value) => value !== valueToDelete)
+    );
+  };
+
+  const handleDeleteOU = (valueToDelete) => {
+    handleConfigChange(
+      'organizationalUnits',
+      config.organizationalUnits.filter((value) => value !== valueToDelete)
+    );
+  };
+
+  const isFormValid = () => {
+    return (
+      config.usersPerRole !== '' &&
+      config.permissionsPerRole !== '' &&
+      !Object.values(errors).some(error => error)
+    );
+  };
+
+  const handleStartMining = () => {
+    if (isFormValid()) {
+      onRunRoleMining(config);
+      setShowResults(true);
+    }
+  };
+
+  const handleReset = () => {
+    setConfig({
       applications: [],
       organizationalUnits: [],
-      minEntitlements: 1,
-      maxEntitlements: 10,
+      usersPerRole: '',
+      permissionsPerRole: '',
+      enableAI: false,
     });
-    setConfigErrors({});
-    setError(null);
+    setErrors({
+      usersPerRole: false,
+      permissionsPerRole: false,
+    });
+    setShowResults(false);
   };
 
-  const handleGetAISuggestions = async () => {
-    setIsLoadingSuggestions(true);
-    setError(null);
-    try {
-      // TODO: Implement AI suggestions API call
-      // Mock response for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setAiSuggestions({
-        applications: ['SAP', 'Salesforce'],
-        organizationalUnits: ['IT', 'Finance'],
-        entitlementRange: {
-          min: 1,
-          max: 10,
-        },
-        confidence: 0.85
-      });
-    } catch (error) {
-      setError('Failed to get AI suggestions. Please try again.');
-      console.error('Failed to get AI suggestions:', error);
-    } finally {
-      setIsLoadingSuggestions(false);
-    }
+  const handleAIToggle = (event) => {
+    setConfig(prev => ({
+      ...prev,
+      enableAI: event.target.checked
+    }));
   };
 
-  const handleAcceptAllSuggestions = () => {
-    if (aiSuggestions) {
-      setRoleMiningConfig({
-        applications: aiSuggestions.applications,
-        organizationalUnits: aiSuggestions.organizationalUnits,
-        minEntitlements: aiSuggestions.entitlementRange.min,
-        maxEntitlements: aiSuggestions.entitlementRange.max,
-      });
-      setConfigErrors({});
-    }
-  };
-
-//   // Extract unique applications and OUs from summary data with null checks
-//   const applications = summary?.applications?.data?.map(app => app.name) || [];
-//   const organizationalUnits = summary?.ou?.data?.map(ou => ou.name) || [];
-
-  // Add null check for summary
-  if (!summary) {
+  if (showResults) {
     return (
-      <Box sx={{ 
-        width: '100%', 
-        maxWidth: '1200px', 
-        mx: 'auto', 
-        p: 3,
-        backgroundColor: '#F9FAFB',
-        minHeight: 'calc(100vh - 64px)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 2
-      }}>
-        <Typography variant="h5" sx={{ color: '#1F2937', fontWeight: 600 }}>
-          No Data Available
-        </Typography>
-        <Typography variant="body1" sx={{ color: '#6B7280' }}>
-          Please upload files first to configure role mining.
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => window.location.href = '/'}
-          startIcon={<RefreshIcon />}
-          sx={{
-            backgroundColor: '#1E40AF',
-            color: '#FFFFFF',
-            '&:hover': {
-              backgroundColor: '#1E3A8A',
-            }
-          }}
-        >
-          Back to Upload
-        </Button>
-      </Box>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <RolesVisualizer enableAI={config.enableAI} />
+      </motion.div>
     );
   }
 
-  // Check if the configuration is valid
-  const isValid = Object.keys(configErrors).length === 0 && 
-    (roleMiningConfig.applications.length > 0 || roleMiningConfig.organizationalUnits.length > 0);
-
   return (
-    <ConfigContainer>
-      <ConfigHeader>
-        <ConfigTitle variant="h5">
-          Role Mining Configuration
-        </ConfigTitle>
-        <ResetButton
-          variant="outlined"
-          onClick={handleResetFilters}
-          startIcon={<RestartAltIcon />}
-        >
-          Reset Filters
-        </ResetButton>
-      </ConfigHeader>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <ConfigContainer>
+        <ConfigHeader>
+          <ConfigTitle variant="h4">
+            Role Mining Configuration
+          </ConfigTitle>
+          <ConfigDescription variant="body1">
+            Configure the parameters for role mining. Select applications and organizational units, and set the number of users and permissions per role.
+          </ConfigDescription>
+        </ConfigHeader>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <ConfigPaper>
-            <Typography variant="h6" sx={{ color: '#1F2937', mb: 3, fontWeight: 600 }}>
-              Filter Configuration
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth error={!!configErrors.applications}>
-                  <InputLabel id="applications-label" sx={{ 
-                    color: '#000000',
-                    backgroundColor: '#FFFFFF',
-                    px: 1,
-                  }}>Applications</InputLabel>
-                  <Select
-                    labelId="applications-label"
-                    multiple
-                    value={roleMiningConfig.applications}
-                    onChange={(e) => handleConfigChange('applications', e.target.value)}
-                    renderValue={(selected) => {
-                      const maxDisplay = 2;
-                      const selectedApps = applicationOptions
-                        .filter(app => selected.includes(app.name))
-                        .slice(0, maxDisplay);
-                      const remainingCount = selected.length - maxDisplay;
-                      
-                      return (
-                        <Box sx={{ 
-                          display: 'flex', 
-                          flexWrap: 'wrap', 
-                          gap: 0.5,
-                          minHeight: '32px',
-                          alignItems: 'center',
-                          overflow: 'hidden'
-                        }}>
-                          {selectedApps.map((app) => (
-                            <Chip 
-                              key={app.id} 
-                              label={app.name}
-                              size="small"
-                              onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                              }}
-                              onDelete={() => {
-                                const newApps = roleMiningConfig.applications.filter(a => a !== app.name);
-                                handleConfigChange('applications', newApps);
-                              }}
-                              deleteIcon={
-                                <CancelIcon 
-                                  onMouseDown={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                  }}
-                                  sx={{ 
-                                    fontSize: '16px',
-                                    '&:hover': { color: '#EF4444' }
-                                  }} 
-                                />
-                              }
-                              sx={chipStyles}
-                            />
-                          ))}
-                          {remainingCount > 0 && (
-                            <Tooltip 
-                              title={
-                                <Box>
-                                  {selected.slice(maxDisplay).map((value) => (
-                                    <div key={value}>{value}</div>
-                                  ))}
-                                </Box>
-                              }
-                            >
-                              <Chip 
-                                size="small"
-                                label={`+${remainingCount} more`}
-                                sx={chipStyles}
-                              />
-                            </Tooltip>
-                          )}
-                        </Box>
-                      );
-                    }}
-                    sx={selectStyles}
-                    MenuProps={menuProps}
-                  >
-                    {isLoading.applications ? (
-                      <MenuItem disabled>
-                        <CircularProgress size={20} sx={{ mr: 2 }} />
-                        Loading applications...
-                      </MenuItem>
-                    ) : (
-                      applicationOptions.map((app) => (
-                        <MenuItem 
-                          key={app.id} 
-                          value={app.name}
-                          sx={{
-                            color: '#000000',
-                            display: 'flex',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Checkbox 
-                            checked={roleMiningConfig.applications.indexOf(app.name) > -1}
-                            sx={{
-                              color: '#000000',
-                              '&.Mui-checked': {
-                                color: '#1E40AF',
-                              },
-                              padding: '4px',
-                            }}
-                          />
-                          <ListItemText 
-                            primary={app.name}
-                            sx={{
-                              '& .MuiTypography-root': {
-                                fontSize: '14px',
-                                color: '#000000',
-                              }
-                            }}
-                          />
-                        </MenuItem>
-                      ))
-                    )}
-                  </Select>
-                  {configErrors.applications && (
-                    <FormHelperText>{configErrors.applications}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth error={!!configErrors.organizationalUnits}>
-                  <InputLabel id="ou-label" sx={{ 
-                    color: '#000000',
-                    backgroundColor: '#FFFFFF',
-                    px: 1,
-                  }}>Organizational Units</InputLabel>
-                  <Select
-                    labelId="ou-label"
-                    multiple
-                    value={roleMiningConfig.organizationalUnits}
-                    onChange={(e) => handleConfigChange('organizationalUnits', e.target.value)}
-                    renderValue={(selected) => {
-                      const maxDisplay = 2;
-                      const selectedOUs = ouOptions
-                        .filter(ou => selected.includes(ou.name))
-                        .slice(0, maxDisplay);
-                      const remainingCount = selected.length - maxDisplay;
-                      
-                      return (
-                        <Box sx={{ 
-                          display: 'flex', 
-                          flexWrap: 'wrap', 
-                          gap: 0.5,
-                          minHeight: '32px',
-                          alignItems: 'center',
-                          overflow: 'hidden'
-                        }}>
-                          {selectedOUs.map((ou) => (
-                            <Chip 
-                              key={ou.id} 
-                              label={ou.name}
-                              size="small"
-                              onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                              }}
-                              onDelete={() => {
-                                const newOUs = roleMiningConfig.organizationalUnits.filter(o => o !== ou.name);
-                                handleConfigChange('organizationalUnits', newOUs);
-                              }}
-                              deleteIcon={
-                                <CancelIcon 
-                                  onMouseDown={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                  }}
-                                  sx={{ 
-                                    fontSize: '16px',
-                                    '&:hover': { color: '#EF4444' }
-                                  }} 
-                                />
-                              }
-                              sx={chipStyles}
-                            />
-                          ))}
-                          {remainingCount > 0 && (
-                            <Tooltip 
-                              title={
-                                <Box>
-                                  {selected.slice(maxDisplay).map((value) => (
-                                    <div key={value}>{value}</div>
-                                  ))}
-                                </Box>
-                              }
-                            >
-                              <Chip 
-                                size="small"
-                                label={`+${remainingCount} more`}
-                                sx={chipStyles}
-                              />
-                            </Tooltip>
-                          )}
-                        </Box>
-                      );
-                    }}
-                    sx={selectStyles}
-                    MenuProps={menuProps}
-                  >
-                    {isLoading.organizationalUnits ? (
-                      <MenuItem disabled>
-                        <CircularProgress size={20} sx={{ mr: 2 }} />
-                        Loading organizational units...
-                      </MenuItem>
-                    ) : (
-                      ouOptions.map((ou) => (
-                        <MenuItem 
-                          key={ou.id} 
-                          value={ou.name}
-                          sx={{
-                            color: '#000000',
-                            display: 'flex',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Checkbox 
-                            checked={roleMiningConfig.organizationalUnits.indexOf(ou.name) > -1}
-                            sx={{
-                              color: '#000000',
-                              '&.Mui-checked': {
-                                color: '#1E40AF',
-                              },
-                              padding: '4px',
-                            }}
-                          />
-                          <ListItemText 
-                            primary={ou.name}
-                            sx={{
-                              '& .MuiTypography-root': {
-                                fontSize: '14px',
-                                color: '#000000',
-                              }
-                            }}
-                          />
-                        </MenuItem>
-                      ))
-                    )}
-                  </Select>
-                  {configErrors.organizationalUnits && (
-                    <FormHelperText>{configErrors.organizationalUnits}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Number of users per role"
-                  type="number"
-                  value={roleMiningConfig.minEntitlements}
-                  onChange={(e) => handleConfigChange('minEntitlements', e.target.value)}
-                  error={!!configErrors.minEntitlements}
-                  helperText={configErrors.minEntitlements}
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">#</InputAdornment>,
-                  }}
-                  sx={inputStyles}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Number of permissions per role"
-                  type="number"
-                  value={roleMiningConfig.maxEntitlements}
-                  onChange={(e) => handleConfigChange('maxEntitlements', e.target.value)}
-                  error={!!configErrors.maxEntitlements}
-                  helperText={configErrors.maxEntitlements}
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">#</InputAdornment>,
-                  }}
-                  sx={inputStyles}
-                />
-              </Grid>
-            </Grid>
-          </ConfigPaper>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center',
-            mt: 3
-          }}>
-            <StartMiningButton
-              variant="contained"
-              onClick={handleRunRoleMining}
-              disabled={!isValid}
-              startIcon={<PlayArrowIcon />}
-            >
-              Start Role Mining
-            </StartMiningButton>
-          </Box>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ 
-            backgroundColor: '#FFFFFF', 
-            border: '1px solid #E5E7EB',
-            overflow: 'hidden'
-          }}>
-            <Button
-              fullWidth
-              onClick={() => setIsAISuggestionsExpanded(!isAISuggestionsExpanded)}
-              sx={{
-                p: 3,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                textTransform: 'none',
-                color: '#1F2937',
-                backgroundColor: 'transparent',
-                '&:hover': {
-                  backgroundColor: '#F9FAFB',
-                },
-                '&:focus': {
-                  outline: 'none',
-                  backgroundColor: '#F9FAFB',
-                }
-              }}
-            >
-              <Typography variant="h6" sx={{ 
-                fontWeight: 600,
-                color: '#1F2937'
-              }}>
-                AI Suggestions
+        <motion.div variants={sectionVariants}>
+          <ConfigSection>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <SectionTitle sx={{ fontWeight: 700 }}>Application Selection</SectionTitle>
+              <Typography
+                variant="caption"
+                sx={{
+                  backgroundColor: '#E5E7EB',
+                  color: '#6B7280',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  fontWeight: 500,
+                }}
+              >
+                Optional
               </Typography>
-              {isAISuggestionsExpanded ? (
-                <KeyboardArrowUpIcon sx={{ color: '#1F2937' }} />
-              ) : (
-                <KeyboardArrowDownIcon sx={{ color: '#1F2937' }} />
-              )}
-            </Button>
-            <Collapse in={isAISuggestionsExpanded}>
-              <Box sx={{ p: 3, pt: 0 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {isLoadingSuggestions ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                      <CircularProgress size={24} sx={{ color: '#1E40AF' }} />
-                    </Box>
-                  ) : aiSuggestions && (
-                    <>
-                      <Typography variant="subtitle2" sx={{ color: '#6B7280', mt: 2, fontWeight: 500 }}>
-                        Suggested Applications:
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {aiSuggestions.applications.map((app) => (
-                          <Chip
-                            key={app}
-                            label={app}
+            </Box>
+            <SectionDescription>
+              Select specific applications to analyze. Leave empty to analyze all applications.
+            </SectionDescription>
+            <FormRow>
+              <FormGroup>
+                <SelectContainer>
+                  <StyledFormControl fullWidth>
+                    <InputLabel>Applications</InputLabel>
+                    <StyledSelect
+                      multiple
+                      value={config.applications}
+                      onChange={handleApplicationChange}
+                      input={<StyledOutlinedInput label="Applications" />}
+                      renderValue={(selected) => (
+                        <ChipContainer>
+                          {selected.map((value) => (
+                            <motion.div
+                              key={value}
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              exit={{ scale: 0 }}
+                            >
+                              <StyledChip
+                                label={value}
+                                deleteIcon={
+                                  <DeleteIcon 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteApplication(value);
+                                    }}
+                                    sx={{ 
+                                      cursor: 'pointer',
+                                      '&:hover': { color: '#EF4444' }
+                                    }}
+                                  />
+                                }
+                              />
+                            </motion.div>
+                          ))}
+                        </ChipContainer>
+                      )}
+                    >
+                      {loading.applications ? (
+                        <MenuItem disabled sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          py: 2
+                        }}>
+                          <LoadingSpinner />
+                          <Typography sx={{ ml: 1 }}>Loading applications...</Typography>
+                        </MenuItem>
+                      ) : (
+                        applications.map((app) => (
+                          <MenuItem 
+                            key={app.id} 
+                            value={app.name}
                             sx={{
-                              backgroundColor: '#E5E7EB',
-                              color: '#374151',
-                              '&:focus': {
-                                outline: 'none',
-                              }
+                              color: '#000000',
+                              '&:hover': {
+                                backgroundColor: '#F3F4F6',
+                              },
                             }}
-                          />
-                        ))}
-                      </Box>
+                          >
+                            <Checkbox 
+                              checked={config.applications.indexOf(app.name) > -1}
+                              sx={{
+                                color: '#000000',
+                                '&.Mui-checked': {
+                                  color: '#1E40AF',
+                                },
+                              }}
+                            />
+                            <ListItemText 
+                              primary={app.name}
+                              sx={{
+                                '& .MuiTypography-root': {
+                                  color: '#000000',
+                                }
+                              }}
+                            />
+                          </MenuItem>
+                        ))
+                      )}
+                    </StyledSelect>
+                  </StyledFormControl>
+                </SelectContainer>
+              </FormGroup>
+            </FormRow>
+          </ConfigSection>
+        </motion.div>
 
-                      <Typography variant="subtitle2" sx={{ color: '#6B7280', mt: 2, fontWeight: 500 }}>
-                        Suggested Organizational Units:
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {aiSuggestions.organizationalUnits.map((ou) => (
-                          <Chip
-                            key={ou}
-                            label={ou}
+        <motion.div variants={sectionVariants}>
+          <ConfigSection>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <SectionTitle sx={{ fontWeight: 700 }}>Organizational Unit Selection</SectionTitle>
+              <Typography
+                variant="caption"
+                sx={{
+                  backgroundColor: '#E5E7EB',
+                  color: '#6B7280',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  fontWeight: 500,
+                }}
+              >
+                Optional
+              </Typography>
+            </Box>
+            <SectionDescription>
+              Select specific organizational units to analyze. Leave empty to analyze all units.
+            </SectionDescription>
+            <FormRow>
+              <FormGroup>
+                <SelectContainer>
+                  <StyledFormControl fullWidth>
+                    <InputLabel>Organizational Units</InputLabel>
+                    <StyledSelect
+                      multiple
+                      value={config.organizationalUnits}
+                      onChange={handleOUChange}
+                      input={<StyledOutlinedInput label="Organizational Units" />}
+                      renderValue={(selected) => (
+                        <ChipContainer>
+                          {selected.map((value) => (
+                            <motion.div
+                              key={value}
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              exit={{ scale: 0 }}
+                            >
+                              <StyledChip
+                                label={value}
+                                deleteIcon={
+                                  <DeleteIcon 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteOU(value);
+                                    }}
+                                    sx={{ 
+                                      cursor: 'pointer',
+                                      '&:hover': { color: '#EF4444' }
+                                    }}
+                                  />
+                                }
+                              />
+                            </motion.div>
+                          ))}
+                        </ChipContainer>
+                      )}
+                    >
+                      {loading.organizationalUnits ? (
+                        <MenuItem disabled sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          py: 2
+                        }}>
+                          <LoadingSpinner />
+                          <Typography sx={{ ml: 1 }}>Loading organizational units...</Typography>
+                        </MenuItem>
+                      ) : (
+                        organizationalUnits.map((ou) => (
+                          <MenuItem 
+                            key={ou.id} 
+                            value={ou.name}
                             sx={{
-                              backgroundColor: '#E5E7EB',
-                              color: '#374151',
-                              '&:focus': {
-                                outline: 'none',
-                              }
+                              color: '#000000',
+                              '&:hover': {
+                                backgroundColor: '#F3F4F6',
+                              },
                             }}
-                          />
-                        ))}
-                      </Box>
+                          >
+                            <Checkbox 
+                              checked={config.organizationalUnits.indexOf(ou.name) > -1}
+                              sx={{
+                                color: '#000000',
+                                '&.Mui-checked': {
+                                  color: '#1E40AF',
+                                },
+                              }}
+                            />
+                            <ListItemText 
+                              primary={ou.name}
+                              sx={{
+                                '& .MuiTypography-root': {
+                                  color: '#000000',
+                                }
+                              }}
+                            />
+                          </MenuItem>
+                        ))
+                      )}
+                    </StyledSelect>
+                  </StyledFormControl>
+                </SelectContainer>
+              </FormGroup>
+            </FormRow>
+          </ConfigSection>
+        </motion.div>
 
-                      <Typography variant="subtitle2" sx={{ color: '#6B7280', mt: 2, fontWeight: 500 }}>
-                        Suggested Entitlement Range:
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#374151' }}>
-                        {aiSuggestions.entitlementRange.min} - {aiSuggestions.entitlementRange.max}
-                      </Typography>
+        <motion.div variants={sectionVariants}>
+          <ConfigSection sx={{ 
+            p: 2,
+            border: '2px solid #DC2626',
+            borderRadius: '8px',
+            backgroundColor: '#FEF2F2',
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Typography variant="h6" sx={{ 
+                color: '#000000',
+                fontWeight: 600,
+              }}>
+                Role Parameters
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  backgroundColor: '#DC2626',
+                  color: '#FFFFFF',
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: '4px',
+                  fontWeight: 500,
+                }}
+              >
+                Required
+              </Typography>
+            </Box>
+            <SectionDescription variant="body2" sx={{ color: '#1F2937' }}>
+              Set the number of users and permissions per role. These parameters are mandatory for role mining.
+            </SectionDescription>
+            <FormRow>
+              <FormGroup>
+                <StyledTextField
+                  label="Number of Users per Role"
+                  type="number"
+                  value={config.usersPerRole}
+                  onChange={(e) => handleNumberChange('usersPerRole', e.target.value)}
+                  error={errors.usersPerRole}
+                  helperText={errors.usersPerRole ? "Please enter a valid positive integer" : ""}
+                  required
+                />
+                <StyledTextField
+                  label="Number of Permissions per Role"
+                  type="number"
+                  value={config.permissionsPerRole}
+                  onChange={(e) => handleNumberChange('permissionsPerRole', e.target.value)}
+                  error={errors.permissionsPerRole}
+                  helperText={errors.permissionsPerRole ? "Please enter a valid positive integer" : ""}
+                  required
+                />
+              </FormGroup>
+            </FormRow>
+          </ConfigSection>
+        </motion.div>
 
-                      <Button
-                        variant="contained"
-                        onClick={handleAcceptAllSuggestions}
-                        startIcon={<CheckCircleIcon />}
-                        sx={{
-                          backgroundColor: '#1E40AF',
-                          color: '#FFFFFF',
-                          mt: 2,
-                          '&:hover': {
-                            backgroundColor: '#1E3A8A',
-                          },
-                          '&:focus': {
-                            outline: 'none',
-                            backgroundColor: '#1E3A8A',
-                          }
-                        }}
-                      >
-                        Accept All Suggestions
-                      </Button>
-                    </>
-                  )}
+        <motion.div variants={sectionVariants}>
+          <Box sx={{ 
+            mb: 3, 
+            mt: 2,
+            p: 2,
+            border: '2px solid #1E40AF',
+            borderRadius: '8px',
+            backgroundColor: '#F0F7FF',
+          }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={config.enableAI}
+                  onChange={handleAIToggle}
+                  color="primary"
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#1E40AF',
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#1E40AF',
+                    },
+                  }}
+                />
+              }
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AutoAwesomeIcon sx={{ color: '#1E40AF' }} />
+                  <Typography variant="subtitle1" sx={{ 
+                    color: '#000000',
+                    fontWeight: 600,
+                  }}>
+                    Enable AI-Assisted Role Mining
+                  </Typography>
                 </Box>
-              </Box>
-            </Collapse>
-          </Paper>
-        </Grid>
-      </Grid>
-    </ConfigContainer>
+              }
+            />
+            <Typography variant="body2" sx={{ 
+              mt: 1, 
+              color: '#1F2937',
+              pl: 7, // Align with the label text
+            }}>
+              Use AI to analyze patterns and suggest optimized role configurations based on historical data.
+            </Typography>
+          </Box>
+        </motion.div>
+
+        <motion.div 
+          variants={sectionVariants}
+          style={{ display: 'flex', gap: '8px', marginTop: '24px' }}
+        >
+          <ResetButton
+            variant="outlined"
+            onClick={handleReset}
+            component={motion.button}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Reset Filters
+          </ResetButton>
+          <StartMiningButton
+            variant="contained"
+            onClick={handleStartMining}
+            disabled={!isFormValid()}
+            component={motion.button}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Start Role Mining
+          </StartMiningButton>
+        </motion.div>
+      </ConfigContainer>
+    </motion.div>
   );
 };
 
-export default RoleMiningConfig; 
+export default RoleMiningConfig;
