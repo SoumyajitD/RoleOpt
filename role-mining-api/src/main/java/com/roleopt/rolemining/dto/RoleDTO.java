@@ -8,7 +8,7 @@ public class RoleDTO {
     private int userCount;
     private List<String> applications;
     private int permissionCount;
-    private boolean aiGenerated;
+    private boolean isAiGenerated;
     private int confidence;
     private List<String> users;
     private List<String> permissions;
@@ -25,7 +25,7 @@ public class RoleDTO {
         this.userCount = userCount;
         this.applications = applications;
         this.permissionCount = permissionCount;
-        this.aiGenerated = aiGenerated;
+        this.isAiGenerated = aiGenerated;
         this.confidence = confidence;
         this.users = users;
         this.permissions = permissions;
@@ -73,11 +73,11 @@ public class RoleDTO {
     }
     
     public boolean isAiGenerated() {
-        return aiGenerated;
+        return isAiGenerated;
     }
     
     public void setAiGenerated(boolean aiGenerated) {
-        this.aiGenerated = aiGenerated;
+        isAiGenerated = aiGenerated;
     }
     
     public int getConfidence() {

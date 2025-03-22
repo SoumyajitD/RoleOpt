@@ -28,48 +28,61 @@ public class UploadServiceImpl implements UploadService {
     private final Map<String, Application> applications = new HashMap<>();
     private final Map<String, Entitlement> entitlements = new HashMap<>();
     private final List<Assignment> assignments = new ArrayList<>();
+    
+    private final RoleMiningServiceImpl roleMiningService;
+    
+    public UploadServiceImpl(RoleMiningServiceImpl roleMiningService) {
+        this.roleMiningService = roleMiningService;
+    }
 
     @Override
-    public void processFiles(MultipartFile usersFile, MultipartFile ouFile, MultipartFile applicationsFile,
-                           MultipartFile entitlementsFile, MultipartFile assignmentsFile) {
+    public void processFiles(MultipartFile usersFile, MultipartFile ouFile, 
+                           MultipartFile applicationsFile, MultipartFile entitlementsFile,
+                           MultipartFile assignmentsFile) throws Exception {
         
-        // Clear existing data
+        // Clear previous data
         organizationalUnits.clear();
         users.clear();
         applications.clear();
         entitlements.clear();
         assignments.clear();
         
-        // Process each file if provided
-        try {
-            if (ouFile != null && !ouFile.isEmpty()) {
-                processOUs(ouFile);
-                log.info("Processed {} organizational units", organizationalUnits.size());
-            }
-            
-            if (usersFile != null && !usersFile.isEmpty()) {
-                processUsers(usersFile);
-                log.info("Processed {} users", users.size());
-            }
-            
-            if (applicationsFile != null && !applicationsFile.isEmpty()) {
-                processApplications(applicationsFile);
-                log.info("Processed {} applications", applications.size());
-            }
-            
-            if (entitlementsFile != null && !entitlementsFile.isEmpty()) {
-                processEntitlements(entitlementsFile);
-                log.info("Processed {} entitlements", entitlements.size());
-            }
-            
-            if (assignmentsFile != null && !assignmentsFile.isEmpty()) {
-                processAssignments(assignmentsFile);
-                log.info("Processed {} assignments", assignments.size());
-            }
-        } catch (IOException e) {
-            log.error("Error processing uploaded files", e);
-            throw new RuntimeException("Error processing uploaded files: " + e.getMessage());
+        // Process Organizational Units
+        if (ouFile != null && !ouFile.isEmpty()) {
+            processOUs(ouFile);
         }
+        
+        // Process Users
+        if (usersFile != null && !usersFile.isEmpty()) {
+            processUsers(usersFile);
+        }
+        
+        // Process Applications
+        if (applicationsFile != null && !applicationsFile.isEmpty()) {
+            processApplications(applicationsFile);
+        }
+        
+        // Process Entitlements
+        if (entitlementsFile != null && !entitlementsFile.isEmpty()) {
+            processEntitlements(entitlementsFile);
+        }
+        
+        // Process Access Assignments
+        if (assignmentsFile != null && !assignmentsFile.isEmpty()) {
+            processAssignments(assignmentsFile);
+        }
+        
+        // Share the data with RoleMiningService
+        roleMiningService.setDataSources(
+            new HashMap<>(users),
+            new HashMap<>(organizationalUnits),
+            new HashMap<>(applications),
+            new HashMap<>(entitlements),
+            new ArrayList<>(assignments)
+        );
+        
+        log.info("Finished processing all files. Entities loaded: {} OUs, {} users, {} applications, {} entitlements, {} assignments",
+            organizationalUnits.size(), users.size(), applications.size(), entitlements.size(), assignments.size());
     }
 
     @Override

@@ -67,19 +67,37 @@ function App() {
     handleNext();
   };
 
-  const handleConfigureRoleMining = (config) => {
+  const handleConfigureRoleMining = async (config) => {
     setMiningConfig(config);
-    // Simulate API call for role mining
-    // In real app, this would call the backend
-    setTimeout(() => {
+    
+    try {
+      // Make an actual API call to the backend
+      const response = await fetch('http://localhost:8080/api/role-mining/run', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(config),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setMiningResults(data);
+    } catch (error) {
+      console.error('Error running role mining:', error);
+      // Fallback to mock data if API call fails
       const mockResults = [
         { id: 1, name: 'Role 1', userCount: 15, applications: ['App1', 'App2'], permissionCount: 5 },
         { id: 2, name: 'Role 2', userCount: 8, applications: ['App2', 'App3'], permissionCount: 3 },
-        { id: 3, name: 'Role 3', userCount: 12, applications: ['App1', 'App3', 'App4'], permissionCount: 7 }
+        { id: 3, name: 'Role 3', userCount: 12, applications: ['App1', 'App3', 'App4'], permissionCount: 7 },
       ];
       setMiningResults(mockResults);
+    } finally {
       handleNext();
-    }, 1500);
+    }
   };
 
   const getStepContent = (step) => {

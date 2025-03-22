@@ -2,10 +2,8 @@ package com.roleopt.rolemining.service.impl;
 
 import com.roleopt.rolemining.dto.RoleDTO;
 import com.roleopt.rolemining.dto.RoleMiningFilterDTO;
-import com.roleopt.rolemining.model.Application;
-import com.roleopt.rolemining.model.Entitlement;
-import com.roleopt.rolemining.model.Role;
-import com.roleopt.rolemining.model.User;
+import com.roleopt.rolemining.model.*;
+import com.roleopt.rolemining.service.AIRoleSuggestionService;
 import com.roleopt.rolemining.service.RoleMiningService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -32,14 +30,39 @@ public class RoleMiningServiceImpl implements RoleMiningService {
     // For this demonstration, we'll use in-memory collections
     private List<RoleDTO> latestResults = new ArrayList<>();
     private List<RoleDTO> aiSuggestions = new ArrayList<>();
+    
+    private final AIRoleSuggestionService aiRoleSuggestionService;
+    
+    // Maps to store uploaded data
+    private Map<String, User> users = new HashMap<>();
+    private Map<String, OrganizationalUnit> ous = new HashMap<>();
+    private Map<String, Application> applications = new HashMap<>();
+    private Map<String, Entitlement> entitlements = new HashMap<>();
+    private List<Assignment> assignments = new ArrayList<>();
+
+    public RoleMiningServiceImpl(AIRoleSuggestionService aiRoleSuggestionService) {
+        this.aiRoleSuggestionService = aiRoleSuggestionService;
+    }
+    
+    public void setDataSources(Map<String, User> users,
+                              Map<String, OrganizationalUnit> ous,
+                              Map<String, Application> applications,
+                              Map<String, Entitlement> entitlements,
+                              List<Assignment> assignments) {
+        this.users = users;
+        this.ous = ous;
+        this.applications = applications;
+        this.entitlements = entitlements;
+        this.assignments = assignments;
+    }
 
     @Override
     @Transactional
     public List<RoleDTO> mineRoles(RoleMiningFilterDTO filters) {
         log.info("Mining roles with filters: {}", filters);
         
-        // In a real implementation, this would perform actual role mining logic
-        // For this demonstration, we'll return mock data
+        // In a real implementation, this would perform actual role mining logic using the uploaded data
+        // For this demonstration, we'll use the mock data generation
         List<RoleDTO> roles = generateMockRoles(filters);
         
         // Store the results
@@ -47,7 +70,28 @@ public class RoleMiningServiceImpl implements RoleMiningService {
         
         // Generate AI suggestions if requested
         if (filters.isUseAi()) {
-            this.aiSuggestions = generateMockAiSuggestions();
+            log.info("AI role suggestions requested");
+            log.info("Data status - Users: {}, Entitlements: {}, Assignments: {}", 
+                    users.size(), entitlements.size(), assignments.size());
+            
+            if (!assignments.isEmpty() && !users.isEmpty() && !entitlements.isEmpty()) {
+                try {
+                    log.info("Attempting to generate AI suggestions with real data");
+                    this.aiSuggestions = aiRoleSuggestionService.suggestRoles(users, entitlements, assignments);
+                    log.info("Successfully generated {} AI-suggested roles", this.aiSuggestions.size());
+                } catch (Exception e) {
+                    log.error("Error generating AI suggestions: {}", e.getMessage(), e);
+                    // Fallback to mock AI suggestions if there's an error
+                    this.aiSuggestions = generateMockAiSuggestions();
+                    log.info("Using mock AI suggestions due to error");
+                }
+            } else {
+                // Fallback to mock AI suggestions if no data is available
+                log.info("No data available for AI analysis, using mock suggestions");
+                this.aiSuggestions = generateMockAiSuggestions();
+            }
+        } else {
+            log.info("AI role suggestions not requested");
         }
         
         return roles;

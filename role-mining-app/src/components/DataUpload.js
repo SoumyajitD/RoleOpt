@@ -113,21 +113,46 @@ const DataUpload = ({ onUploadComplete }) => {
     setError(null);
     
     try {
-      // In a real application, you would upload to a server here
-      // For demo, we'll just parse the CSV files locally
-      const parsedData = {};
+      // Create form data to send files to the server
+      const formData = new FormData();
       
+      // Add each file to the form data
       for (const fileType of expectedFiles) {
         if (files[fileType.name]) {
-          parsedData[fileType.name] = await parseCSV(files[fileType.name]);
+          formData.append(fileType.name, files[fileType.name]);
         }
       }
       
-      // Wait a bit to simulate server processing
-      setTimeout(() => {
-        setUploading(false);
-        onUploadComplete(parsedData);
-      }, 1500);
+      // Send the files to the backend
+      const response = await fetch('http://localhost:8080/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      // After successful upload, get the data summary
+      const summaryResponse = await fetch('http://localhost:8080/api/upload/data-summary');
+      
+      if (!summaryResponse.ok) {
+        throw new Error(`HTTP error getting summary! Status: ${summaryResponse.status}`);
+      }
+      
+      const summary = await summaryResponse.json();
+      
+      // Convert to the format expected by onUploadComplete
+      const parsedData = {
+        users: new Array(summary.userCount || 0),
+        ous: new Array(summary.ouCount || 0),
+        applications: new Array(summary.applicationCount || 0),
+        entitlements: new Array(summary.entitlementCount || 0),
+        assignments: new Array(summary.assignmentCount || 0),
+      };
+      
+      setUploading(false);
+      onUploadComplete(parsedData);
     } catch (err) {
       setUploading(false);
       setError('Error processing files: ' + err.message);

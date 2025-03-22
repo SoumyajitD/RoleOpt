@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
@@ -24,6 +24,9 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import axios from 'axios';
+import Alert from '@material-ui/lab/Alert';
+import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,6 +46,9 @@ const useStyles = makeStyles((theme) => ({
   },
   dialogContent: {
     minWidth: 400,
+  },
+  aiSection: {
+    marginBottom: theme.spacing(4),
   },
 }));
 
@@ -68,13 +74,36 @@ const RoleMiningResults = ({ results, onBack }) => {
   const [downloadingReport, setDownloadingReport] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
+  const [aiSuggestedRoles, setAiSuggestedRoles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Mock data for AI-suggested roles (in a real app, this would come from the backend)
-  const aiSuggestedRoles = [
-    { id: 101, name: 'AI Role 1 - Sales Team', userCount: 18, applications: ['CRM', 'Document Management', 'Email System'], permissionCount: 6, confidence: 92 },
-    { id: 102, name: 'AI Role 2 - Finance Staff', userCount: 9, applications: ['Finance System', 'ERP System'], permissionCount: 8, confidence: 88 },
-    { id: 103, name: 'AI Role 3 - HR Team', userCount: 7, applications: ['HR Portal', 'Document Management'], permissionCount: 5, confidence: 79 },
-  ];
+  // Fetch AI-suggested roles from the API
+  useEffect(() => {
+    const fetchAiSuggestions = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('http://localhost:8080/api/role-mining/ai-suggest');
+        console.log('AI suggestions response:', response.data);
+        setAiSuggestedRoles(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching AI suggestions:', err);
+        setError('Failed to load AI suggestions. Please try again later.');
+        // Fallback to mock data if API call fails
+        setAiSuggestedRoles([
+          { id: 101, name: 'AI Role 1 - Sales Team', userCount: 18, applications: ['CRM', 'Document Management', 'Email System'], permissionCount: 6, confidence: 92 },
+          { id: 102, name: 'AI Role 2 - Finance Staff', userCount: 9, applications: ['Finance System', 'ERP System'], permissionCount: 8, confidence: 88 },
+          { id: 103, name: 'AI Role 3 - HR Team', userCount: 7, applications: ['HR Portal', 'Document Management'], permissionCount: 5, confidence: 79 },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Call the function to fetch AI suggestions
+    fetchAiSuggestions();
+  }, []);  // Empty dependency array means this runs once when component mounts
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -201,55 +230,75 @@ const RoleMiningResults = ({ results, onBack }) => {
       </TabPanel>
       
       <TabPanel value={tabValue} index={1}>
-        <Typography variant="body1" paragraph>
-          AI-suggested roles based on access pattern analysis:
-        </Typography>
+        <div className={classes.aiSection}>
+          <Typography variant="h6" gutterBottom>
+            AI-Suggested Roles
+          </Typography>
+          <Typography variant="body2" color="textSecondary" paragraph>
+            These roles are suggested by AI based on analysis of user access patterns.
+            The confidence score indicates the AI's certainty about the role suggestion.
+          </Typography>
+        </div>
         
-        <TableContainer component={Paper} className={classes.tableContainer}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Role Name</TableCell>
-                <TableCell align="center">Users</TableCell>
-                <TableCell>Applications</TableCell>
-                <TableCell align="center">Permissions</TableCell>
-                <TableCell align="center">AI Confidence</TableCell>
-                <TableCell align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {aiSuggestedRoles.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell component="th" scope="row">
-                    {role.name}
-                  </TableCell>
-                  <TableCell align="center">{role.userCount}</TableCell>
-                  <TableCell>
-                    {role.applications.map((app, index) => (
-                      <Chip
-                        key={index}
-                        label={app}
-                        size="small"
-                        className={classes.appChip}
-                      />
-                    ))}
-                  </TableCell>
-                  <TableCell align="center">{role.permissionCount}</TableCell>
-                  <TableCell align="center">{role.confidence}%</TableCell>
-                  <TableCell align="center">
-                    <Button 
-                      size="small" 
-                      color="primary"
-                      onClick={() => handleOpenDetails(role)}
-                    >
-                      View Details
-                    </Button>
-                  </TableCell>
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+            <CircularProgress />
+          </div>
+        ) : error ? (
+          <Alert severity="error" style={{ marginBottom: '16px' }}>
+            {error}
+          </Alert>
+        ) : aiSuggestedRoles.length === 0 ? (
+          <Alert severity="info">
+            No AI suggestions available. Try running role mining with AI enabled.
+          </Alert>
+        ) : (
+          <TableContainer component={Paper} className={classes.tableContainer}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Role Name</TableCell>
+                  <TableCell align="center">Users</TableCell>
+                  <TableCell>Applications</TableCell>
+                  <TableCell align="center">Permissions</TableCell>
+                  <TableCell align="center">AI Confidence</TableCell>
+                  <TableCell align="center">Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {aiSuggestedRoles.map((role) => (
+                  <TableRow key={role.id}>
+                    <TableCell component="th" scope="row">
+                      {role.name}
+                    </TableCell>
+                    <TableCell align="center">{role.userCount}</TableCell>
+                    <TableCell>
+                      {role.applications.map((app, index) => (
+                        <Chip
+                          key={index}
+                          label={app}
+                          size="small"
+                          className={classes.appChip}
+                        />
+                      ))}
+                    </TableCell>
+                    <TableCell align="center">{role.permissionCount}</TableCell>
+                    <TableCell align="center">{role.confidence}%</TableCell>
+                    <TableCell align="center">
+                      <Button 
+                        size="small" 
+                        color="primary"
+                        onClick={() => handleOpenDetails(role)}
+                      >
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </TabPanel>
       
       <div className={classes.buttonGroup}>

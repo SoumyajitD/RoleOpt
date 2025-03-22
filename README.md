@@ -107,3 +107,13 @@ The application expects the following CSV files for upload:
   - Apache Commons CSV
   - Lombok
   - Weka for AI/ML processing 
+
+## Testing the AI Model
+
+To test the deepseek-r1:1.5b model directly before using it in your application, you can run:
+
+```
+ollama run deepseek-r1:1.5b
+```
+
+Then you can ask it questions to see how it performs. Press Ctrl+C when you're done to exit.
