@@ -1,6 +1,8 @@
 package com.roleopt.rolemining.dto;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class RoleDTO {
     private Long id;
@@ -12,6 +14,7 @@ public class RoleDTO {
     private int confidence;
     private List<String> users;
     private List<String> permissions;
+    private Map<String, Object> attributes = new HashMap<>();
     
     // Default constructor
     public RoleDTO() {
@@ -102,5 +105,21 @@ public class RoleDTO {
     
     public void setPermissions(List<String> permissions) {
         this.permissions = permissions;
+    }
+    
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+    
+    public void setAttributes(Map<String, Object> attributes) {
+        this.attributes = attributes;
+    }
+    
+    public Object getAttribute(String key) {
+        return attributes.get(key);
+    }
+    
+    public void setAttribute(String key, Object value) {
+        attributes.put(key, value);
     }
 } 

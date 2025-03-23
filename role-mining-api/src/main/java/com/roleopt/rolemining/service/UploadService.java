@@ -1,7 +1,11 @@
 package com.roleopt.rolemining.service;
 
 import com.roleopt.rolemining.dto.DataSummaryDTO;
+import com.roleopt.rolemining.model.Application;
+import com.roleopt.rolemining.model.OrganizationalUnit;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 public interface UploadService {
 
@@ -28,4 +32,8 @@ public interface UploadService {
      * @return a summary DTO with counts of entities
      */
     DataSummaryDTO getDataSummary();
+
+    Map<String, Application> getApplications();
+    
+    Map<String, OrganizationalUnit> getOrganizationalUnits();
 } 

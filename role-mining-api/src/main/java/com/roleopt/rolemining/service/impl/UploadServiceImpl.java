@@ -96,6 +96,16 @@ public class UploadServiceImpl implements UploadService {
         return dataSummaryDTO;
     }
 
+    @Override
+    public Map<String, Application> getApplications() {
+        return applications;
+    }
+    
+    @Override
+    public Map<String, OrganizationalUnit> getOrganizationalUnits() {
+        return organizationalUnits;
+    }
+
     private void processOUs(MultipartFile file) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
              CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {

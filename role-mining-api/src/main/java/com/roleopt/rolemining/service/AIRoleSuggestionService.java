@@ -156,52 +156,104 @@ public class AIRoleSuggestionService {
             aiResponse = aiResponse.replaceAll("(?s)<think>.*?</think>", "").trim();
             log.info("CLEAN AI RESPONSE (after removing <think> sections): {}", aiResponse);
             
-            // First try matching specifically for the format seen in logs: **Role X: RoleName**
-            Pattern rolePattern = Pattern.compile("\\*\\*Role (\\d+): ([^*]+)\\*\\*", Pattern.DOTALL);
-            Matcher roleMatcher = rolePattern.matcher(aiResponse);
+            // Try multiple patterns to match role headers
+            boolean parsedSuccessfully = false;
             
-            int roleCount = 0;
-            while (roleMatcher.find()) {
-                roleCount++;
-                String roleNumber = roleMatcher.group(1);
-                String roleName = roleMatcher.group(2).trim();
-                
-                // Get the entire role section
-                int matchStart = roleMatcher.start();
-                int matchEnd;
-                
-                if (aiResponse.indexOf("**Role " + (Integer.parseInt(roleNumber) + 1) + ":", matchStart) != -1) {
-                    matchEnd = aiResponse.indexOf("**Role " + (Integer.parseInt(roleNumber) + 1) + ":", matchStart);
-                } else {
-                    matchEnd = aiResponse.length();
-                }
-                
-                String roleSection = aiResponse.substring(matchStart, matchEnd).trim();
-                log.info("Found role section {}: {}", roleCount, roleSection);
-                
-                // Extract permissions
-                List<String> permissions = new ArrayList<>();
-                Pattern permPattern = Pattern.compile("- \\*\\*([^:]+):\\s*([^*]+)\\*\\*", Pattern.MULTILINE);
-                Matcher permMatcher = permPattern.matcher(roleSection);
-                
-                while (permMatcher.find()) {
-                    String permType = permMatcher.group(1).trim();
-                    String permValue = permMatcher.group(2).trim();
+            // Pattern 1: Try matching for "**Role X: RoleName**" format
+            Pattern rolePattern1 = Pattern.compile("\\*\\*Role (\\d+):?\\s*([^*]+)\\*\\*", Pattern.DOTALL);
+            Matcher roleMatcher1 = rolePattern1.matcher(aiResponse);
+            
+            // Pattern 2: Try matching for "### Role X: RoleName" format
+            Pattern rolePattern2 = Pattern.compile("###\\s*Role\\s*(\\d+):?\\s*([^#]+)", Pattern.DOTALL);
+            Matcher roleMatcher2 = rolePattern2.matcher(aiResponse);
+            
+            // Pattern 3: Try matching for "**Role X**" or simply "Role X:" format (more general)
+            Pattern rolePattern3 = Pattern.compile("(?:\\*\\*)?Role\\s*(\\d+):?(?:\\*\\*)?\\s*([^\\n]+)", Pattern.DOTALL);
+            Matcher roleMatcher3 = rolePattern3.matcher(aiResponse);
+            
+            // Use the first pattern that matches
+            Pattern rolePattern;
+            Matcher roleMatcher;
+            
+            if (roleMatcher1.find()) {
+                rolePattern = rolePattern1;
+                roleMatcher = roleMatcher1;
+                roleMatcher.reset();
+                log.info("Using pattern 1 for role detection: **Role X: RoleName**");
+            } else if (roleMatcher2.find()) {
+                rolePattern = rolePattern2;
+                roleMatcher = roleMatcher2;
+                roleMatcher.reset();
+                log.info("Using pattern 2 for role detection: ### Role X: RoleName");
+            } else if (roleMatcher3.find()) {
+                rolePattern = rolePattern3;
+                roleMatcher = roleMatcher3;
+                roleMatcher.reset();
+                log.info("Using pattern 3 for role detection: Role X: RoleName (no formatting)");
+            } else {
+                log.warn("No standard role header pattern detected in AI response");
+                rolePattern = null;
+                roleMatcher = null;
+            }
+            
+            if (rolePattern != null) {
+                int roleCount = 0;
+                while (roleMatcher.find()) {
+                    roleCount++;
+                    String roleNumber = roleMatcher.group(1);
+                    String roleName = roleMatcher.group(2).trim();
                     
-                    if (permType.contains("Key Permissions")) {
-                        // Found the key permissions section
-                        int permStart = permMatcher.end();
-                        int permEnd = roleSection.indexOf("- **", permStart);
-                        if (permEnd == -1) permEnd = roleSection.length();
+                    // Get the entire role section
+                    int matchStart = roleMatcher.start();
+                    int matchEnd;
+                    
+                    // Find the start of the next role (if any)
+                    if (roleMatcher.find()) {
+                        matchEnd = roleMatcher.start();
+                        roleMatcher.reset();
+                        roleMatcher.find(matchStart); // Go back to current match
+                    } else {
+                        matchEnd = aiResponse.length();
+                        roleMatcher.reset();
+                        roleMatcher.find(matchStart); // Go back to current match
+                    }
+                    
+                    String roleSection = aiResponse.substring(matchStart, matchEnd).trim();
+                    log.info("Found role section {}: {}", roleCount, roleSection.substring(0, Math.min(100, roleSection.length())) + "...");
+                    
+                    // Extract permissions - try different patterns
+                    List<String> permissions = new ArrayList<>();
+                    
+                    // Pattern for key permissions section with "Key permissions:" or "Key Permissions:" header
+                    Pattern keyPermPattern = Pattern.compile("(?:Key [Pp]ermissions|\\*\\*Key [Pp]ermissions\\*\\*)(?::)?", Pattern.CASE_INSENSITIVE);
+                    Matcher keyPermMatcher = keyPermPattern.matcher(roleSection);
+                    
+                    if (keyPermMatcher.find()) {
+                        // Extract from the key permissions section to the next section
+                        int permStart = keyPermMatcher.end();
                         
-                        String permSection = roleSection.substring(permStart, permEnd).trim();
+                        // Find the next section header
+                        Pattern nextSectionPattern = Pattern.compile("(?:\\n\\s*\\*\\*|\\n\\s*Estimated|\\n\\s*Confidence|\\n\\s*Justification)", Pattern.CASE_INSENSITIVE);
+                        Matcher nextSectionMatcher = nextSectionPattern.matcher(roleSection);
                         
-                        // Extract individual permissions
-                        String[] lines = permSection.split("\\n");
+                        int permEnd;
+                        if (nextSectionMatcher.find(permStart)) {
+                            permEnd = nextSectionMatcher.start();
+                        } else {
+                            permEnd = roleSection.length();
+                        }
+                        
+                        String permissionsText = roleSection.substring(permStart, permEnd).trim();
+                        log.info("Extracted permissions text: {}", permissionsText);
+                        
+                        // Split by lines and extract permissions (those starting with - or *)
+                        String[] lines = permissionsText.split("\\n");
                         for (String line : lines) {
                             line = line.trim();
-                            if (line.startsWith("-")) {
+                            if (line.startsWith("-") || line.startsWith("*")) {
                                 String perm = line.substring(1).trim();
+                                // Clean up any markdown
+                                perm = perm.replaceAll("\\*\\*", "").trim();
                                 if (!perm.isEmpty()) {
                                     permissions.add(perm);
                                     log.info("Added permission: {}", perm);
@@ -209,117 +261,187 @@ public class AIRoleSuggestionService {
                             }
                         }
                     }
-                }
-                
-                // If permissions empty, try another pattern specifically matching the format in logs
-                if (permissions.isEmpty()) {
-                    permMatcher = Pattern.compile("\\*\\*Key Permissions\\*\\*: ([^\\n]+)").matcher(roleSection);
-                    if (permMatcher.find()) {
-                        String perm = permMatcher.group(1).trim();
-                        permissions.add(perm);
-                        log.info("Added permission from single line: {}", perm);
+                    
+                    // If no permissions found, try extracting from inline key permissions
+                    if (permissions.isEmpty()) {
+                        Pattern inlinePermPattern = Pattern.compile("(?:Key [Pp]ermissions|\\*\\*Key [Pp]ermissions\\*\\*)(?::|:?\\s+)\\s*([^\\n]+)", 
+                            Pattern.CASE_INSENSITIVE);
+                        Matcher inlinePermMatcher = inlinePermPattern.matcher(roleSection);
+                        
+                        if (inlinePermMatcher.find()) {
+                            String permsLine = inlinePermMatcher.group(1).trim();
+                            // Split by commas if multiple permissions are listed in one line
+                            String[] perms = permsLine.split(",");
+                            for (String perm : perms) {
+                                perm = perm.trim().replaceAll("\\*\\*", "").trim();
+                                if (!perm.isEmpty()) {
+                                    permissions.add(perm);
+                                    log.info("Added permission from inline format: {}", perm);
+                                }
+                            }
+                        }
                     }
-                }
-                
-                // Extract user count
-                int userCount = 0;
-                Pattern userCountPattern = Pattern.compile("\\*\\*Estimated User Count\\*\\*: (\\d+)", Pattern.MULTILINE);
-                Matcher userCountMatcher = userCountPattern.matcher(roleSection);
-                if (userCountMatcher.find()) {
-                    try {
-                        userCount = Integer.parseInt(userCountMatcher.group(1).trim());
-                        log.info("Extracted user count: {}", userCount);
-                    } catch (NumberFormatException e) {
-                        log.warn("Failed to parse user count");
+                    
+                    // Extract user count
+                    int userCount = 0;
+                    Pattern userCountPattern = Pattern.compile("(?:Estimated\\s+User\\s+Count|\\*\\*Estimated\\s+User\\s+Count\\*\\*)\\s*:?\\s*(\\d+)", 
+                        Pattern.CASE_INSENSITIVE);
+                    Matcher userCountMatcher = userCountPattern.matcher(roleSection);
+                    
+                    if (userCountMatcher.find()) {
+                        try {
+                            userCount = Integer.parseInt(userCountMatcher.group(1).trim());
+                            log.info("Extracted user count: {}", userCount);
+                        } catch (NumberFormatException e) {
+                            log.warn("Failed to parse user count");
+                        }
                     }
-                }
-                
-                // Extract confidence
-                int confidence = 70;  // Default
-                Pattern confidencePattern = Pattern.compile("\\*\\*Confidence Level\\*\\*: (\\d+)", Pattern.MULTILINE);
-                Matcher confidenceMatcher = confidencePattern.matcher(roleSection);
-                if (confidenceMatcher.find()) {
-                    try {
-                        confidence = Integer.parseInt(confidenceMatcher.group(1).trim());
-                        log.info("Extracted confidence: {}", confidence);
-                    } catch (NumberFormatException e) {
-                        log.warn("Failed to parse confidence");
+                    
+                    // Check for user count in format "X users" or "X Users"
+                    if (userCount == 0) {
+                        Pattern usersPattern = Pattern.compile("(\\d+)\\s+[Uu]sers?", Pattern.CASE_INSENSITIVE);
+                        Matcher usersMatcher = usersPattern.matcher(roleSection);
+                        if (usersMatcher.find()) {
+                            try {
+                                userCount = Integer.parseInt(usersMatcher.group(1).trim());
+                                log.info("Extracted user count from 'X users' format: {}", userCount);
+                            } catch (NumberFormatException e) {
+                                log.warn("Failed to parse user count from 'X users' format");
+                            }
+                        }
                     }
-                }
-                
-                // Create role
-                RoleDTO role = new RoleDTO();
-                role.setId((long) (100 + roleCount));
-                role.setName(roleName);
-                role.setPermissionCount(permissions.size());
-                role.setUserCount(userCount);
-                role.setConfidence(confidence);
-                role.setAiGenerated(true);
-                
-                // Set permissions
-                role.setPermissions(permissions);
-                
-                // Generate sample users based on the actual user count
-                List<String> detailedUsers = new ArrayList<>();
-                for (int u = 1; u <= userCount; u++) {
-                    String firstName = "";
-                    String lastName = "";
-                    switch (u % 5) {
-                        case 0: firstName = "Alice"; lastName = "Johnson"; break;
-                        case 1: firstName = "Bob"; lastName = "Williams"; break;
-                        case 2: firstName = "Carol"; lastName = "Lee"; break;
-                        case 3: firstName = "David"; lastName = "Smith"; break;
-                        case 4: firstName = "John"; lastName = "Doe"; break;
+                    
+                    // Extract confidence
+                    int confidence = 70;  // Default
+                    Pattern confidencePattern = Pattern.compile("(?:Confidence|\\*\\*Confidence\\*\\*|Confidence Level|\\*\\*Confidence Level\\*\\*)\\s*:?\\s*(\\d+)\\s*%?", 
+                        Pattern.CASE_INSENSITIVE);
+                    Matcher confidenceMatcher = confidencePattern.matcher(roleSection);
+                    
+                    if (confidenceMatcher.find()) {
+                        try {
+                            confidence = Integer.parseInt(confidenceMatcher.group(1).trim());
+                            log.info("Extracted confidence: {}", confidence);
+                        } catch (NumberFormatException e) {
+                            log.warn("Failed to parse confidence");
+                        }
                     }
-                    String userEmail = firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com";
-                    detailedUsers.add(firstName + " " + lastName + " (" + userEmail + ")");
-                }
-                role.setUsers(detailedUsers);
-                
-                // Extract applications from permissions
-                Set<String> appSet = new HashSet<>();
-                for (String perm : permissions) {
-                    if (perm.contains(":")) {
-                        String app = perm.substring(0, perm.indexOf(":")).trim();
-                        appSet.add(app);
-                    } else if (perm.contains(" ")) {
-                        String app = perm.substring(0, perm.indexOf(" ")).trim();
-                        appSet.add(app);
+                    
+                    // Create role
+                    RoleDTO role = new RoleDTO();
+                    role.setId((long) (100 + roleCount));
+                    role.setName(roleName);
+                    role.setPermissionCount(permissions.size());
+                    role.setUserCount(userCount);
+                    role.setConfidence(confidence);
+                    role.setAiGenerated(true);
+                    
+                    // Set permissions
+                    role.setPermissions(permissions);
+                    
+                    // Generate sample users based on the actual user count
+                    List<String> detailedUsers = new ArrayList<>();
+                    for (int u = 1; u <= Math.max(userCount, 1); u++) {
+                        String firstName = "";
+                        String lastName = "";
+                        switch (u % 5) {
+                            case 0: firstName = "Alice"; lastName = "Johnson"; break;
+                            case 1: firstName = "Bob"; lastName = "Williams"; break;
+                            case 2: firstName = "Carol"; lastName = "Lee"; break;
+                            case 3: firstName = "David"; lastName = "Smith"; break;
+                            case 4: firstName = "John"; lastName = "Doe"; break;
+                        }
+                        String userEmail = firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com";
+                        detailedUsers.add(firstName + " " + lastName + " (" + userEmail + ")");
                     }
-                }
-                
-                // Add default apps if none found
-                if (appSet.isEmpty()) {
-                    if (roleName.toLowerCase().contains("hr")) {
-                        appSet.add("HRPortal");
-                    } else if (roleName.toLowerCase().contains("finance")) {
-                        appSet.add("FinanceTool");
-                    } else if (roleName.toLowerCase().contains("code")) {
-                        appSet.add("CodeRepo");
-                    } else {
-                        appSet.add("Unknown");
+                    role.setUsers(detailedUsers);
+                    
+                    // Extract applications from permissions
+                    Set<String> appSet = new HashSet<>();
+                    for (String perm : permissions) {
+                        if (perm.contains(":")) {
+                            String app = perm.substring(0, perm.indexOf(":")).trim();
+                            appSet.add(app);
+                        } else if (perm.contains(" ")) {
+                            String app = perm.substring(0, perm.indexOf(" ")).trim();
+                            appSet.add(app);
+                        }
                     }
+                    
+                    // Add default apps if none found
+                    if (appSet.isEmpty()) {
+                        if (roleName.toLowerCase().contains("hr")) {
+                            appSet.add("HRPortal");
+                        } else if (roleName.toLowerCase().contains("finance")) {
+                            appSet.add("FinanceTool");
+                        } else if (roleName.toLowerCase().contains("code") || roleName.toLowerCase().contains("engineer")) {
+                            appSet.add("CodeRepo");
+                        } else {
+                            appSet.add("Unknown");
+                        }
+                    }
+                    
+                    // Clean application names and filter out non-application text
+                    List<String> cleanAppsList = new ArrayList<>();
+                    Set<String> nonAppTerms = new HashSet<>(Arrays.asList(
+                        "confidence", "justification", "estimated", "level", "count", "user"));
+                    
+                    for (String app : appSet) {
+                        app = app.replace("[", "").replace("]", "").trim();
+                        
+                        // Skip adding if it contains any of our non-app terms
+                        boolean isNonAppTerm = false;
+                        for (String term : nonAppTerms) {
+                            if (app.toLowerCase().contains(term)) {
+                                isNonAppTerm = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!isNonAppTerm) {
+                            cleanAppsList.add(app);
+                        }
+                    }
+                    role.setApplications(cleanAppsList);
+                    
+                    // Extract justification
+                    String justification = "";
+                    Pattern justificationPattern = Pattern.compile("(?:Justification|\\*\\*Justification\\*\\*)\\s*:?\\s*([^\\n]+(?:\\n(?!Role|\\*\\*Role|###)[^\\n]+)*)", 
+                        Pattern.CASE_INSENSITIVE);
+                    Matcher justificationMatcher = justificationPattern.matcher(roleSection);
+                    
+                    if (justificationMatcher.find()) {
+                        justification = justificationMatcher.group(1).trim();
+                        // Clean up any markdown
+                        justification = justification.replaceAll("\\*\\*", "").trim();
+                        log.info("Extracted justification: {}", justification);
+                    }
+                    
+                    // Clean the role name to remove any markdown or extra text
+                    roleName = roleName.replaceAll("\\*\\*.*?\\*\\*", "").trim();
+                    // If role name contains a dash followed by text, keep only the part before the dash
+                    if (roleName.contains(" - ")) {
+                        roleName = roleName.substring(0, roleName.indexOf(" - ")).trim();
+                    }
+                    role.setName(roleName);
+                    
+                    // Set the justification as a custom attribute
+                    Map<String, Object> attributes = new HashMap<>();
+                    attributes.put("justification", justification);
+                    role.setAttributes(attributes);
+                    
+                    log.info("Created role: {}, permissions: {}, users: {}, confidence: {}, apps: {}", 
+                        role.getName(), role.getPermissionCount(), role.getUserCount(), 
+                        role.getConfidence(), role.getApplications());
+                    
+                    suggestedRoles.add(role);
+                    parsedSuccessfully = true;
                 }
-                
-                // Clean application names
-                List<String> cleanAppsList = new ArrayList<>();
-                for (String app : appSet) {
-                    app = app.replace("[", "").replace("]", "").trim();
-                    cleanAppsList.add(app);
-                }
-                role.setApplications(cleanAppsList);
-                
-                log.info("Created role: {}, permissions: {}, users: {}, confidence: {}, apps: {}", 
-                    role.getName(), role.getPermissionCount(), role.getUserCount(), 
-                    role.getConfidence(), role.getApplications());
-                
-                suggestedRoles.add(role);
             }
             
-            log.info("Successfully parsed {} roles using regex pattern", suggestedRoles.size());
+            log.info("Successfully parsed {} roles using regex patterns", suggestedRoles.size());
             
-            // If no roles were found using the first approach, try the fallback
-            if (suggestedRoles.isEmpty()) {
+            // If no roles were found using any approach, try the fallback
+            if (!parsedSuccessfully || suggestedRoles.isEmpty()) {
                 log.info("All parsing methods failed, creating roles based on keywords");
                 
                 // Create roles based on keywords in the AI response

@@ -47,27 +47,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// Mock data - In a real app, this would come from the backend
-const mockApplications = [
-  { id: 1, name: 'Email System' },
-  { id: 2, name: 'HR Portal' },
-  { id: 3, name: 'Finance System' },
-  { id: 4, name: 'CRM' },
-  { id: 5, name: 'Document Management' },
-  { id: 6, name: 'ERP System' },
-  { id: 7, name: 'Intranet' },
-];
-
-const mockOrganizationalUnits = [
-  { id: 1, name: 'IT Department' },
-  { id: 2, name: 'HR Department' },
-  { id: 3, name: 'Finance' },
-  { id: 4, name: 'Sales' },
-  { id: 5, name: 'Marketing' },
-  { id: 6, name: 'Operations' },
-  { id: 7, name: 'Executive' },
-];
-
 const RoleMining = ({ onSubmit, onBack }) => {
   const classes = useStyles();
   
@@ -81,16 +60,46 @@ const RoleMining = ({ onSubmit, onBack }) => {
   const [useAi, setUseAi] = useState(true);
   const [validationErrors, setValidationErrors] = useState({});
 
-  // In a real app, fetch options from the backend
+  // State for options from the backend
   const [applicationOptions, setApplicationOptions] = useState([]);
   const [ouOptions, setOuOptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
-    // Simulate fetching data from API
-    setTimeout(() => {
-      setApplicationOptions(mockApplications);
-      setOuOptions(mockOrganizationalUnits);
-    }, 500);
+    // Fetch data from the backend
+    const fetchMetadata = async () => {
+      setLoading(true);
+      try {
+        // Fetch applications
+        const appResponse = await fetch('http://localhost:8080/api/metadata/applications');
+        if (!appResponse.ok) {
+          throw new Error(`Applications API error: ${appResponse.statusText}`);
+        }
+        const appData = await appResponse.json();
+        
+        // Fetch organizational units
+        const ouResponse = await fetch('http://localhost:8080/api/metadata/organizational-units');
+        if (!ouResponse.ok) {
+          throw new Error(`Organizational Units API error: ${ouResponse.statusText}`);
+        }
+        const ouData = await ouResponse.json();
+        
+        setApplicationOptions(appData || []);
+        setOuOptions(ouData || []);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching metadata:', err);
+        setError('Failed to load filter options. Using default values.');
+        // Fallback to empty arrays
+        setApplicationOptions([]);
+        setOuOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMetadata();
   }, []);
   
   const handleApplicationChange = (event) => {
@@ -155,11 +164,17 @@ const RoleMining = ({ onSubmit, onBack }) => {
         Customize the role discovery process using the filters below. All filters are optional.
       </Typography>
       
+      {error && (
+        <Typography variant="body2" color="error" paragraph>
+          {error}
+        </Typography>
+      )}
+      
       <div className={classes.section}>
         <Typography variant="subtitle1" gutterBottom>
           Filter by Applications
         </Typography>
-        <FormControl className={classes.formControl}>
+        <FormControl className={classes.formControl} disabled={loading}>
           <InputLabel id="application-select-label">Applications</InputLabel>
           <Select
             labelId="application-select-label"
@@ -182,13 +197,21 @@ const RoleMining = ({ onSubmit, onBack }) => {
               </div>
             )}
           >
-            {applicationOptions.map((app) => (
-              <MenuItem key={app.id} value={app.id}>
-                {app.name}
-              </MenuItem>
-            ))}
+            {loading ? (
+              <MenuItem disabled>Loading applications...</MenuItem>
+            ) : applicationOptions.length === 0 ? (
+              <MenuItem disabled>No applications available</MenuItem>
+            ) : (
+              applicationOptions.map((app) => (
+                <MenuItem key={app.id} value={app.id}>
+                  {app.name}
+                </MenuItem>
+              ))
+            )}
           </Select>
-          <FormHelperText>Select applications to include in role mining</FormHelperText>
+          <FormHelperText>
+            {loading ? 'Loading applications...' : 'Select applications to include in role mining'}
+          </FormHelperText>
         </FormControl>
       </div>
       
@@ -196,7 +219,7 @@ const RoleMining = ({ onSubmit, onBack }) => {
         <Typography variant="subtitle1" gutterBottom>
           Filter by Organizational Units
         </Typography>
-        <FormControl className={classes.formControl}>
+        <FormControl className={classes.formControl} disabled={loading}>
           <InputLabel id="ou-select-label">Organizational Units</InputLabel>
           <Select
             labelId="ou-select-label"
@@ -219,13 +242,21 @@ const RoleMining = ({ onSubmit, onBack }) => {
               </div>
             )}
           >
-            {ouOptions.map((ou) => (
-              <MenuItem key={ou.id} value={ou.id}>
-                {ou.name}
-              </MenuItem>
-            ))}
+            {loading ? (
+              <MenuItem disabled>Loading organizational units...</MenuItem>
+            ) : ouOptions.length === 0 ? (
+              <MenuItem disabled>No organizational units available</MenuItem>
+            ) : (
+              ouOptions.map((ou) => (
+                <MenuItem key={ou.id} value={ou.id}>
+                  {ou.name}
+                </MenuItem>
+              ))
+            )}
           </Select>
-          <FormHelperText>Select organizational units to include in role mining</FormHelperText>
+          <FormHelperText>
+            {loading ? 'Loading organizational units...' : 'Select organizational units to include in role mining'}
+          </FormHelperText>
         </FormControl>
       </div>
       
