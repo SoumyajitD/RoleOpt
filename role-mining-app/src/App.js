@@ -234,7 +234,7 @@ function App() {
           <div className={classes.logo}>
             <Avatar className={classes.avatar}>R</Avatar>
             <Typography variant="h6" className={classes.logoText} color="inherit" noWrap>
-              RoleOpt Identity
+              Verify Role Optimization
             </Typography>
           </div>
           

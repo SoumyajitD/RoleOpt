@@ -5,9 +5,12 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import StorageIcon from '@material-ui/icons/Storage';
 import Alert from '@material-ui/lab/Alert';
 import Grid from '@material-ui/core/Grid';
 import Papa from 'papaparse';
+import Divider from '@material-ui/core/Divider';
+import Box from '@material-ui/core/Box';
 
 const useStyles = makeStyles((theme) => ({
   dropzone: {
@@ -31,6 +34,7 @@ const useStyles = makeStyles((theme) => ({
   },
   uploadButton: {
     marginTop: theme.spacing(2),
+    marginRight: theme.spacing(2),
   },
   progress: {
     marginTop: theme.spacing(2),
@@ -40,6 +44,21 @@ const useStyles = makeStyles((theme) => ({
   },
   uploadSection: {
     marginBottom: theme.spacing(4),
+  },
+  actionButtons: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: theme.spacing(2),
+  },
+  divider: {
+    margin: theme.spacing(4, 0),
+  },
+  importSection: {
+    textAlign: 'center',
+    padding: theme.spacing(3),
+    marginTop: theme.spacing(2),
+    backgroundColor: theme.palette.background.default,
+    borderRadius: theme.spacing(1),
   },
 }));
 
@@ -56,6 +75,7 @@ const DataUpload = ({ onUploadComplete }) => {
   const classes = useStyles();
   const [files, setFiles] = useState({});
   const [uploading, setUploading] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [error, setError] = useState(null);
 
   const handleFileChange = (event, fileType) => {
@@ -159,6 +179,31 @@ const DataUpload = ({ onUploadComplete }) => {
     }
   };
 
+  const handleImportFromDB = async () => {
+    setImporting(true);
+    setError(null);
+    
+    try {
+      // Simulate API call to import from database
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock data similar to what would come from the database
+      const mockData = {
+        users: new Array(150),
+        ous: new Array(25),
+        applications: new Array(40),
+        entitlements: new Array(200),
+        assignments: new Array(1200),
+      };
+      
+      setImporting(false);
+      onUploadComplete(mockData);
+    } catch (err) {
+      setImporting(false);
+      setError('Error importing from database: ' + err.message);
+    }
+  };
+
   return (
     <div>
       <Typography variant="h6" gutterBottom>
@@ -208,21 +253,62 @@ const DataUpload = ({ onUploadComplete }) => {
         ))}
       </Grid>
       
-      {uploading ? (
+      {(uploading || importing) ? (
         <div className={classes.progress}>
           <CircularProgress />
+          <Typography variant="body1" style={{ marginLeft: 16 }}>
+            {uploading ? 'Uploading and processing files...' : 'Importing from database...'}
+          </Typography>
         </div>
       ) : (
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          className={classes.uploadButton}
-          onClick={handleUpload}
-          disabled={Object.keys(files).length === 0}
-        >
-          Upload and Process Files
-        </Button>
+        <>
+          <div className={classes.actionButtons}>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              className={classes.uploadButton}
+              onClick={handleUpload}
+              disabled={Object.keys(files).length === 0}
+              startIcon={<CloudUploadIcon />}
+            >
+              Upload and Process Files
+            </Button>
+            
+            <Divider orientation="vertical" flexItem />
+            
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              onClick={handleImportFromDB}
+              startIcon={<StorageIcon />}
+            >
+              Import from Database
+            </Button>
+          </div>
+          
+          <Divider className={classes.divider} />
+          
+          <Paper className={classes.importSection}>
+            <StorageIcon color="primary" style={{ fontSize: 40, marginBottom: 8 }} />
+            <Typography variant="h6" gutterBottom>
+              Database Import
+            </Typography>
+            <Typography variant="body2" color="textSecondary" paragraph>
+              Skip file upload and directly import data from the connected database. 
+              This will fetch users, organizational units, applications, entitlements, and assignments.
+            </Typography>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleImportFromDB}
+              startIcon={<StorageIcon />}
+            >
+              Import from Database
+            </Button>
+          </Paper>
+        </>
       )}
     </div>
   );
