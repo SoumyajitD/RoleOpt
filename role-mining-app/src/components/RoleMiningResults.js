@@ -14,6 +14,7 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import AddIcon from '@material-ui/icons/Add';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Tabs from '@material-ui/core/Tabs';
@@ -29,6 +30,15 @@ import ListItemText from '@material-ui/core/ListItemText';
 import axios from 'axios';
 import Alert from '@material-ui/lab/Alert';
 import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import CardActions from '@material-ui/core/CardActions';
+import Divider from '@material-ui/core/Divider';
+import Fade from '@material-ui/core/Fade';
+import Grow from '@material-ui/core/Grow';
+import Zoom from '@material-ui/core/Zoom';
+import Avatar from '@material-ui/core/Avatar';
+import { blue, green, orange, red, purple } from '@material-ui/core/colors';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -36,12 +46,47 @@ const useStyles = makeStyles((theme) => ({
   },
   tableContainer: {
     marginBottom: theme.spacing(4),
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    overflow: 'hidden',
+    transition: 'all 0.3s ease-in-out',
+    '&:hover': {
+      boxShadow: '0 6px 25px rgba(0,0,0,0.15)',
+    },
+  },
+  tableHead: {
+    backgroundColor: theme.palette.primary.main,
+  },
+  tableHeadCell: {
+    color: theme.palette.common.white,
+    fontWeight: 'bold',
+  },
+  tableRow: {
+    '&:nth-of-type(odd)': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+      backgroundColor: theme.palette.action.selected,
+    },
   },
   appChip: {
     margin: '2px',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+    },
   },
   buttonGroup: {
     marginTop: theme.spacing(4),
+    '& .MuiButton-root': {
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      },
+    },
   },
   tabPanel: {
     padding: theme.spacing(2, 0),
@@ -51,6 +96,83 @@ const useStyles = makeStyles((theme) => ({
   },
   aiSection: {
     marginBottom: theme.spacing(4),
+  },
+  cardGrid: {
+    marginTop: theme.spacing(3),
+  },
+  card: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-4px)',
+      boxShadow: '0 12px 20px rgba(0,0,0,0.15)',
+    },
+  },
+  cardHeader: {
+    backgroundColor: theme.palette.grey[100],
+    padding: theme.spacing(2),
+    display: 'flex',
+    alignItems: 'center',
+  },
+  cardContent: {
+    flexGrow: 1,
+  },
+  cardActions: {
+    padding: theme.spacing(2),
+    justifyContent: 'space-between',
+  },
+  avatar: {
+    marginRight: theme.spacing(2),
+    width: theme.spacing(5),
+    height: theme.spacing(5),
+  },
+  chip: {
+    margin: theme.spacing(0.5),
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+    },
+  },
+  viewButton: {
+    borderRadius: theme.shape.borderRadius,
+    textTransform: 'none',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+    },
+  },
+  tabs: {
+    marginBottom: theme.spacing(2),
+    '& .MuiTabs-indicator': {
+      height: 3,
+    },
+    '& .MuiTab-root': {
+      transition: 'all 0.2s',
+      '&:hover': {
+        color: theme.palette.primary.main,
+        backgroundColor: theme.palette.action.hover,
+      },
+    },
+  },
+  confidenceChip: {
+    fontWeight: 'bold',
+  },
+  headerTypography: {
+    position: 'relative',
+    display: 'inline-block',
+    marginBottom: theme.spacing(3),
+    '&:after': {
+      content: '""',
+      position: 'absolute',
+      width: '40%',
+      height: '4px',
+      bottom: '-10px',
+      left: '0',
+      backgroundColor: theme.palette.primary.main,
+      borderRadius: '2px',
+    },
   },
 }));
 
@@ -65,10 +187,35 @@ function TabPanel(props) {
       aria-labelledby={`role-results-tab-${index}`}
       {...other}
     >
-      {value === index && <Box p={3}>{children}</Box>}
+      {value === index && (
+        <Fade in={value === index} timeout={500}>
+          <Box p={3}>{children}</Box>
+        </Fade>
+      )}
     </div>
   );
 }
+
+// Helper function to get avatar color based on name
+const getAvatarColor = (name) => {
+  if (name.toLowerCase().includes('hr')) return purple[500];
+  if (name.toLowerCase().includes('finance')) return green[500];
+  if (name.toLowerCase().includes('code') || name.toLowerCase().includes('engineer')) return blue[500];
+  if (name.toLowerCase().includes('admin')) return red[500];
+  return orange[500];
+};
+
+// Helper function to get avatar letter
+const getAvatarLetter = (name) => {
+  return name.charAt(0).toUpperCase();
+};
+
+// Helper function to get confidence color
+const getConfidenceColor = (confidence) => {
+  if (confidence >= 80) return green[500];
+  if (confidence >= 60) return orange[500];
+  return red[500];
+};
 
 const RoleMiningResults = ({ results, onBack }) => {
   const classes = useStyles();
@@ -168,265 +315,314 @@ const RoleMiningResults = ({ results, onBack }) => {
 
   if (!results || results.length === 0) {
     return (
-      <div>
-        <Typography variant="h6" gutterBottom>
-          No Results Found
-        </Typography>
-        <Typography variant="body1" paragraph>
-          No roles were discovered with the current filters. Please try again with different filters.
-        </Typography>
-        <Button startIcon={<ArrowBackIcon />} variant="contained" color="primary" onClick={onBack}>
-          Back to Filters
-        </Button>
-      </div>
+      <Fade in={true}>
+        <div>
+          <Typography variant="h6" gutterBottom className={classes.headerTypography}>
+            No Results Found
+          </Typography>
+          <Typography variant="body1" paragraph>
+            No roles were discovered with the current filters. Please try again with different filters.
+          </Typography>
+          <Button startIcon={<ArrowBackIcon />} variant="contained" color="primary" onClick={onBack}
+            className={classes.viewButton}>
+            Back to Filters
+          </Button>
+        </div>
+      </Fade>
     );
   }
 
-  return (
-    <div className={classes.root}>
-      <Typography variant="h6" gutterBottom>
-        Role Mining Results
-      </Typography>
-      
-      <Tabs
-        value={tabValue}
-        onChange={handleTabChange}
-        indicatorColor="primary"
-        textColor="primary"
-        variant="fullWidth"
-      >
-        <Tab label="Filter-Based Roles" />
-        <Tab label="AI-Suggested Roles" />
-      </Tabs>
-      
-      <TabPanel value={tabValue} index={0}>
-        <Typography variant="body1" paragraph>
-          The following roles were discovered based on your filter criteria:
-        </Typography>
-        
-        <TableContainer component={Paper} className={classes.tableContainer}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Role Name</TableCell>
-                <TableCell align="center">Users</TableCell>
-                <TableCell>Applications</TableCell>
-                <TableCell align="center">Permissions</TableCell>
-                <TableCell align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {results.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell component="th" scope="row">
+  const renderRolesAsCards = (roles, showConfidence = false) => {
+    return (
+      <Grid container spacing={3} className={classes.cardGrid}>
+        {roles.map((role, index) => (
+          <Grow in={true} timeout={(index + 1) * 300} key={role.id}>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card className={classes.card}>
+                <div className={classes.cardHeader}>
+                  <Avatar 
+                    className={classes.avatar} 
+                    style={{ backgroundColor: getAvatarColor(role.name) }}
+                  >
+                    {getAvatarLetter(role.name)}
+                  </Avatar>
+                  <Typography variant="h6" component="h2">
                     {role.name}
-                  </TableCell>
-                  <TableCell align="center">{role.userCount}</TableCell>
-                  <TableCell>
-                    {role.applications.map((app, index) => (
-                      <Chip
-                        key={index}
-                        label={app}
-                        size="small"
-                        className={classes.appChip}
+                  </Typography>
+                </div>
+                <CardContent className={classes.cardContent}>
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography variant="body2" color="textSecondary">
+                      Users
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {role.userCount}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography variant="body2" color="textSecondary">
+                      Permissions
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {role.permissionCount}
+                    </Typography>
+                  </Box>
+                  {showConfidence && (
+                    <Box display="flex" justifyContent="space-between" mb={2}>
+                      <Typography variant="body2" color="textSecondary">
+                        AI Confidence
+                      </Typography>
+                      <Chip 
+                        label={`${role.confidence}%`} 
+                        size="small" 
+                        className={classes.confidenceChip}
+                        style={{ 
+                          backgroundColor: getConfidenceColor(role.confidence),
+                          color: 'white'
+                        }}
                       />
-                    ))}
-                  </TableCell>
-                  <TableCell align="center">{role.permissionCount}</TableCell>
-                  <TableCell align="center">
-                    <Button 
-                      size="small" 
-                      color="primary"
-                      onClick={() => handleOpenDetails(role)}
-                    >
-                      View Details
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </TabPanel>
-      
-      <TabPanel value={tabValue} index={1}>
-        <div className={classes.aiSection}>
-          <Typography variant="h6" gutterBottom>
-            AI-Suggested Roles
-          </Typography>
-          <Typography variant="body2" color="textSecondary" paragraph>
-            These roles are suggested by AI based on analysis of user access patterns.
-            The confidence score indicates the AI's certainty about the role suggestion.
-          </Typography>
-        </div>
-        
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-            <CircularProgress />
-          </div>
-        ) : error ? (
-          <Alert severity="error" style={{ marginBottom: '16px' }}>
-            {error}
-          </Alert>
-        ) : aiSuggestedRoles.length === 0 ? (
-          <Alert severity="info">
-            No AI suggestions available. Try running role mining with AI enabled.
-          </Alert>
-        ) : (
-          <TableContainer component={Paper} className={classes.tableContainer}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Role Name</TableCell>
-                  <TableCell align="center">Users</TableCell>
-                  <TableCell>Applications</TableCell>
-                  <TableCell align="center">Permissions</TableCell>
-                  <TableCell align="center">AI Confidence</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {aiSuggestedRoles.map((role) => (
-                  <TableRow key={role.id}>
-                    <TableCell component="th" scope="row">
-                      {role.name}
-                    </TableCell>
-                    <TableCell align="center">{role.userCount}</TableCell>
-                    <TableCell>
-                      {role.applications.map((app, index) => (
+                    </Box>
+                  )}
+                  <Divider style={{ margin: '12px 0' }}/>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
+                    Applications
+                  </Typography>
+                  <Box mt={1}>
+                    {role.applications.map((app, index) => (
+                      <Zoom in={true} timeout={600 + (index * 100)} key={index}>
                         <Chip
-                          key={index}
                           label={app}
                           size="small"
-                          className={classes.appChip}
+                          className={classes.chip}
                         />
-                      ))}
-                    </TableCell>
-                    <TableCell align="center">{role.permissionCount}</TableCell>
-                    <TableCell align="center">{role.confidence}%</TableCell>
-                    <TableCell align="center">
-                      <Button 
-                        size="small" 
-                        color="primary"
-                        onClick={() => handleOpenDetails(role)}
-                      >
-                        View Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </TabPanel>
-      
-      <div className={classes.buttonGroup}>
-        <ButtonGroup variant="contained" color="primary">
-          <Button startIcon={<ArrowBackIcon />} onClick={onBack}>
-            Back to Filters
-          </Button>
-          <Button 
-            startIcon={downloadingReport ? <CircularProgress size={20} color="inherit" /> : <GetAppIcon />}
-            onClick={handleDownloadReport}
-            disabled={downloadingReport}
-          >
-            {downloadingReport ? 'Downloading...' : 'Download Report'}
-          </Button>
-          <Button 
-            startIcon={addingToIdentityManager ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
-            onClick={handleAddToIdentityManager}
-            disabled={addingToIdentityManager}
-          >
-            {addingToIdentityManager ? 'Adding...' : 'Add to Identity Manager'}
-          </Button>
-          <Button 
-            startIcon={<RefreshIcon />}
-            onClick={handleStartNewRoleMining}
-          >
-            Start New Role Mining
-          </Button>
-        </ButtonGroup>
-      </div>
-      
-      {/* Role Details Dialog */}
-      <Dialog
-        open={detailDialogOpen}
-        onClose={() => setDetailDialogOpen(false)}
-        aria-labelledby="role-detail-dialog-title"
-      >
-        <DialogTitle id="role-detail-dialog-title">
-          Role Details: {selectedRole?.name}
-        </DialogTitle>
-        <DialogContent className={classes.dialogContent}>
-          {selectedRole && (
-            <>
-              <Typography variant="subtitle1" gutterBottom>
-                Users ({selectedRole.userCount})
-              </Typography>
-              <List dense>
-                {/* Mock user list - in a real app, this would come from the backend */}
-                {Array(Math.min(selectedRole.userCount, 5)).fill(0).map((_, index) => (
-                  <ListItem key={index}>
-                    <ListItemText 
-                      primary={`User ${index + 1}`} 
-                      secondary={`user${index + 1}@example.com`} 
-                    />
-                  </ListItem>
-                ))}
-                {selectedRole.userCount > 5 && (
-                  <ListItem>
-                    <ListItemText 
-                      primary={`... and ${selectedRole.userCount - 5} more users`}
-                    />
-                  </ListItem>
-                )}
-              </List>
-              
-              <Typography variant="subtitle1" gutterBottom>
-                Applications
-              </Typography>
-              <Box mb={2}>
-                {selectedRole.applications.map((app, index) => (
-                  <Chip
-                    key={index}
-                    label={app}
-                    className={classes.appChip}
-                  />
-                ))}
-              </Box>
-              
-              <Typography variant="subtitle1" gutterBottom>
-                Permissions ({selectedRole.permissionCount})
-              </Typography>
-              <List dense>
-                {/* Mock permission list - in a real app, this would come from the backend */}
-                {Array(Math.min(selectedRole.permissionCount, 5)).fill(0).map((_, index) => (
-                  <ListItem key={index}>
-                    <ListItemText 
-                      primary={`Permission ${index + 1}`} 
-                      secondary={`${selectedRole.applications[index % selectedRole.applications.length]} - Access Level ${index + 1}`} 
-                    />
-                  </ListItem>
-                ))}
-                {selectedRole.permissionCount > 5 && (
-                  <ListItem>
-                    <ListItemText 
-                      primary={`... and ${selectedRole.permissionCount - 5} more permissions`}
-                    />
-                  </ListItem>
-                )}
-              </List>
-            </>
+                      </Zoom>
+                    ))}
+                  </Box>
+                </CardContent>
+                <CardActions className={classes.cardActions}>
+                  <Button 
+                    startIcon={<VisibilityIcon />}
+                    variant="outlined" 
+                    color="primary"
+                    size="small"
+                    className={classes.viewButton}
+                    onClick={() => handleOpenDetails(role)}
+                  >
+                    View Details
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          </Grow>
+        ))}
+      </Grid>
+    );
+  };
+
+  return (
+    <Fade in={true}>
+      <div className={classes.root}>
+        <Typography variant="h5" gutterBottom className={classes.headerTypography}>
+          Role Mining Results
+        </Typography>
+        
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          indicatorColor="primary"
+          textColor="primary"
+          variant="fullWidth"
+          className={classes.tabs}
+        >
+          <Tab label="Filter-Based Roles" />
+          <Tab label="AI-Suggested Roles" />
+        </Tabs>
+        
+        <TabPanel value={tabValue} index={0}>
+          <Typography variant="body1" paragraph>
+            The following roles were discovered based on your filter criteria:
+          </Typography>
+          
+          {renderRolesAsCards(results)}
+        </TabPanel>
+        
+        <TabPanel value={tabValue} index={1}>
+          <div className={classes.aiSection}>
+            <Typography variant="h6" gutterBottom>
+              AI-Suggested Roles
+            </Typography>
+            <Typography variant="body2" color="textSecondary" paragraph>
+              These roles are suggested by AI based on analysis of user access patterns.
+              The confidence score indicates the AI's certainty about the role suggestion.
+            </Typography>
+          </div>
+          
+          {loading ? (
+            <Box display="flex" justifyContent="center" alignItems="center" p={4}>
+              <CircularProgress />
+            </Box>
+          ) : error ? (
+            <Alert severity="error" style={{ marginBottom: '16px' }}>
+              {error}
+            </Alert>
+          ) : aiSuggestedRoles.length === 0 ? (
+            <Alert severity="info">
+              No AI suggestions available. Try running role mining with AI enabled.
+            </Alert>
+          ) : (
+            renderRolesAsCards(aiSuggestedRoles, true)
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDetailDialogOpen(false)} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+        </TabPanel>
+        
+        <Zoom in={true} timeout={800}>
+          <div className={classes.buttonGroup}>
+            <ButtonGroup variant="contained" color="primary">
+              <Button startIcon={<ArrowBackIcon />} onClick={onBack}>
+                Back to Filters
+              </Button>
+              <Button 
+                startIcon={downloadingReport ? <CircularProgress size={20} color="inherit" /> : <GetAppIcon />}
+                onClick={handleDownloadReport}
+                disabled={downloadingReport}
+              >
+                {downloadingReport ? 'Downloading...' : 'Download Report'}
+              </Button>
+              <Button 
+                startIcon={addingToIdentityManager ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+                onClick={handleAddToIdentityManager}
+                disabled={addingToIdentityManager}
+              >
+                {addingToIdentityManager ? 'Adding...' : 'Add to Identity Manager'}
+              </Button>
+              <Button 
+                startIcon={<RefreshIcon />}
+                onClick={handleStartNewRoleMining}
+              >
+                Start New Role Mining
+              </Button>
+            </ButtonGroup>
+          </div>
+        </Zoom>
+        
+        {/* Role Details Dialog */}
+        <Dialog
+          open={detailDialogOpen}
+          onClose={() => setDetailDialogOpen(false)}
+          aria-labelledby="role-detail-dialog-title"
+          TransitionComponent={Zoom}
+        >
+          <DialogTitle id="role-detail-dialog-title">
+            <Box display="flex" alignItems="center">
+              {selectedRole && (
+                <>
+                  <Avatar 
+                    className={classes.avatar} 
+                    style={{ backgroundColor: getAvatarColor(selectedRole.name) }}
+                  >
+                    {getAvatarLetter(selectedRole.name)}
+                  </Avatar>
+                  <Typography variant="h6">
+                    {selectedRole?.name}
+                  </Typography>
+                </>
+              )}
+            </Box>
+          </DialogTitle>
+          <DialogContent className={classes.dialogContent}>
+            {selectedRole && (
+              <>
+                <Typography variant="subtitle1" gutterBottom>
+                  Users ({selectedRole.userCount})
+                </Typography>
+                <List dense>
+                  {selectedRole.users ? (
+                    selectedRole.users.map((user, index) => (
+                      <Fade in={true} timeout={(index + 1) * 200} key={index}>
+                        <ListItem>
+                          <ListItemText 
+                            primary={user} 
+                          />
+                        </ListItem>
+                      </Fade>
+                    ))
+                  ) : (
+                    Array(Math.min(selectedRole.userCount, 5)).fill(0).map((_, index) => (
+                      <Fade in={true} timeout={(index + 1) * 200} key={index}>
+                        <ListItem>
+                          <ListItemText 
+                            primary={`User ${index + 1}`} 
+                            secondary={`user${index + 1}@example.com`} 
+                          />
+                        </ListItem>
+                      </Fade>
+                    ))
+                  )}
+                  {!selectedRole.users && selectedRole.userCount > 5 && (
+                    <ListItem>
+                      <ListItemText 
+                        primary={`... and ${selectedRole.userCount - 5} more users`}
+                      />
+                    </ListItem>
+                  )}
+                </List>
+                
+                <Typography variant="subtitle1" gutterBottom>
+                  Applications
+                </Typography>
+                <Box mb={2}>
+                  {selectedRole.applications.map((app, index) => (
+                    <Zoom in={true} timeout={400 + (index * 100)} key={index}>
+                      <Chip
+                        label={app}
+                        className={classes.chip}
+                      />
+                    </Zoom>
+                  ))}
+                </Box>
+                
+                <Typography variant="subtitle1" gutterBottom>
+                  Permissions ({selectedRole.permissionCount})
+                </Typography>
+                <List dense>
+                  {selectedRole.permissions ? (
+                    selectedRole.permissions.map((permission, index) => (
+                      <Fade in={true} timeout={(index + 1) * 200} key={index}>
+                        <ListItem>
+                          <ListItemText primary={permission} />
+                        </ListItem>
+                      </Fade>
+                    ))
+                  ) : (
+                    Array(Math.min(selectedRole.permissionCount, 5)).fill(0).map((_, index) => (
+                      <Fade in={true} timeout={(index + 1) * 200} key={index}>
+                        <ListItem>
+                          <ListItemText 
+                            primary={`Permission ${index + 1}`} 
+                            secondary={`${selectedRole.applications[index % selectedRole.applications.length]} - Access Level ${index + 1}`} 
+                          />
+                        </ListItem>
+                      </Fade>
+                    ))
+                  )}
+                  {!selectedRole.permissions && selectedRole.permissionCount > 5 && (
+                    <ListItem>
+                      <ListItemText 
+                        primary={`... and ${selectedRole.permissionCount - 5} more permissions`}
+                      />
+                    </ListItem>
+                  )}
+                </List>
+              </>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDetailDialogOpen(false)} color="primary" variant="contained">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    </Fade>
   );
 };
 
