@@ -12,6 +12,8 @@ import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import GetAppIcon from '@material-ui/icons/GetApp';
+import AddIcon from '@material-ui/icons/Add';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Tabs from '@material-ui/core/Tabs';
@@ -77,6 +79,7 @@ const RoleMiningResults = ({ results, onBack }) => {
   const [aiSuggestedRoles, setAiSuggestedRoles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [addingToIdentityManager, setAddingToIdentityManager] = useState(false);
 
   // Fetch AI-suggested roles from the API
   useEffect(() => {
@@ -144,6 +147,23 @@ const RoleMiningResults = ({ results, onBack }) => {
   const handleOpenDetails = (role) => {
     setSelectedRole(role);
     setDetailDialogOpen(true);
+  };
+
+  const handleAddToIdentityManager = () => {
+    setAddingToIdentityManager(true);
+    
+    // Simulate adding to identity manager
+    setTimeout(() => {
+      alert('Roles have been successfully added to Identity Manager');
+      setAddingToIdentityManager(false);
+    }, 1500);
+  };
+
+  const handleStartNewRoleMining = () => {
+    // Go back to the first step by calling onBack multiple times
+    onBack(); // Go back to Configure Role Mining
+    onBack(); // Go back to Data Summary
+    onBack(); // Go back to Upload Data
   };
 
   if (!results || results.length === 0) {
@@ -312,6 +332,19 @@ const RoleMiningResults = ({ results, onBack }) => {
             disabled={downloadingReport}
           >
             {downloadingReport ? 'Downloading...' : 'Download Report'}
+          </Button>
+          <Button 
+            startIcon={addingToIdentityManager ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+            onClick={handleAddToIdentityManager}
+            disabled={addingToIdentityManager}
+          >
+            {addingToIdentityManager ? 'Adding...' : 'Add to Identity Manager'}
+          </Button>
+          <Button 
+            startIcon={<RefreshIcon />}
+            onClick={handleStartNewRoleMining}
+          >
+            Start New Role Mining
           </Button>
         </ButtonGroup>
       </div>
