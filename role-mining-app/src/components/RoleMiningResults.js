@@ -96,6 +96,22 @@ const useStyles = makeStyles((theme) => ({
   },
   aiSection: {
     marginBottom: theme.spacing(4),
+    padding: theme.spacing(3),
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: '0 3px 15px rgba(0,0,0,0.05)',
+    position: 'relative',
+    overflow: 'hidden',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '4px',
+      height: '100%',
+      backgroundColor: theme.palette.primary.main,
+    }
   },
   cardGrid: {
     marginTop: theme.spacing(3),
@@ -235,16 +251,77 @@ const RoleMiningResults = ({ results, onBack }) => {
       try {
         const response = await axios.get('http://localhost:8080/api/role-mining/ai-suggest');
         console.log('AI suggestions response:', response.data);
-        setAiSuggestedRoles(response.data);
+        
+        // Process the received data before setting it in state
+        let processedRoles = [];
+        
+        // First check if we received valid data
+        if (Array.isArray(response.data)) {
+          // Clean and normalize each role
+          const normalizedRoles = response.data.map(role => {
+            // Clean the role name to prepare for deduplication
+            const cleanedName = role.name ? 
+              role.name.replace(/\*\*/g, "").trim() : "Unnamed Role";
+              
+            return {
+              id: role.id || Math.floor(Math.random() * 1000) + 1000,
+              name: cleanedName,
+              normalizedName: cleanedName.toLowerCase().replace(/\s+/g, ''), // for grouping
+              userCount: typeof role.userCount === 'number' ? role.userCount : 
+                (role.users ? role.users.length : 0),
+              applications: Array.isArray(role.applications) ? role.applications : [],
+              permissionCount: typeof role.permissionCount === 'number' ? role.permissionCount : 
+                (role.permissions ? role.permissions.length : 0),
+              permissions: Array.isArray(role.permissions) ? role.permissions : [],
+              users: Array.isArray(role.users) ? role.users : [],
+              confidence: typeof role.confidence === 'number' ? role.confidence : 70,
+              attributes: role.attributes || {}
+            };
+          });
+          
+          // Group similar roles by their normalized names and keep the highest confidence one
+          const roleGroups = {};
+          
+          // Group roles by normalized name
+          normalizedRoles.forEach(role => {
+            // Extract any role type identifiers for better grouping
+            let groupKey = role.normalizedName;
+            
+            // Check for common role types to group roles with similar purposes
+            const commonRoleTypes = ['hr', 'finance', 'engineering', 'developer', 'admin', 'support'];
+            for (const type of commonRoleTypes) {
+              if (role.normalizedName.includes(type)) {
+                groupKey = type;
+                break;
+              }
+            }
+            
+            if (!roleGroups[groupKey]) {
+              roleGroups[groupKey] = [];
+            }
+            roleGroups[groupKey].push(role);
+          });
+          
+          // For each group, take the highest confidence role
+          Object.values(roleGroups).forEach(group => {
+            if (group.length > 0) {
+              // Sort by confidence (highest first) and take the first one
+              const bestRole = group.sort((a, b) => b.confidence - a.confidence)[0];
+              processedRoles.push(bestRole);
+            }
+          });
+        }
+        
+        setAiSuggestedRoles(processedRoles);
         setError(null);
       } catch (err) {
         console.error('Error fetching AI suggestions:', err);
         setError('Failed to load AI suggestions. Please try again later.');
         // Fallback to mock data if API call fails
         setAiSuggestedRoles([
-          { id: 101, name: 'AI Role 1 - Sales Team', userCount: 18, applications: ['CRM', 'Document Management', 'Email System'], permissionCount: 6, confidence: 92 },
-          { id: 102, name: 'AI Role 2 - Finance Staff', userCount: 9, applications: ['Finance System', 'ERP System'], permissionCount: 8, confidence: 88 },
-          { id: 103, name: 'AI Role 3 - HR Team', userCount: 7, applications: ['HR Portal', 'Document Management'], permissionCount: 5, confidence: 79 },
+          { id: 101, name: 'Finance Team', userCount: 2, applications: ['FinanceTool'], permissions: ['FinanceTool: FinanceView', 'FinanceTool: FinanceEdit'], permissionCount: 2, confidence: 85, users: ['Carol Lee (Finance)', 'David Chen (Finance)'] },
+          { id: 102, name: 'Engineering Team', userCount: 2, applications: ['CodeRepo'], permissions: ['CodeRepo: CodeRead', 'CodeRepo: CodeWrite'], permissionCount: 2, confidence: 90, users: ['John Doe (Engineering)', 'Jane Smith (Engineering)'] },
+          { id: 103, name: 'HR Team', userCount: 2, applications: ['HRPortal'], permissions: ['HRPortal: HRView', 'HRPortal: HRManage'], permissionCount: 2, confidence: 80, users: ['Alice Johnson (HR)', 'Bob Williams (HR)'] },
         ]);
       } finally {
         setLoading(false);
@@ -333,10 +410,43 @@ const RoleMiningResults = ({ results, onBack }) => {
   }
 
   const renderRolesAsCards = (roles, showConfidence = false) => {
+    // Process roles to handle duplicates and clean up data
+    const processedRoles = roles.reduce((acc, role) => {
+      // Get cleaned name for this role
+      const cleanedName = cleanRoleName(role.name);
+      
+      // Skip if this role is already in our processed list (case-insensitive matching)
+      if (acc.some(r => r.name.toLowerCase() === cleanedName.toLowerCase())) {
+        return acc;
+      }
+      
+      // Clean up applications
+      const cleanedApps = cleanApplications(role.applications || []);
+      
+      // Clean up the role object
+      const cleanedRole = {
+        ...role,
+        // Ensure we have a clean name (remove markdown and remove any patterns that look like descriptions)
+        name: cleanedName,
+        // Ensure applications is an array without duplicates or metadata terms
+        applications: cleanedApps,
+        // Make sure we have a proper confidence value
+        confidence: typeof role.confidence === 'number' ? role.confidence : 70,
+        // Ensure we have a proper user count
+        userCount: typeof role.userCount === 'number' ? Math.max(role.userCount, 0) : 0,
+        // Ensure we have a proper permission count
+        permissionCount: typeof role.permissionCount === 'number' ? 
+          Math.max(role.permissionCount, (role.permissions || []).length) : 
+          (role.permissions || []).length
+      };
+      
+      return [...acc, cleanedRole];
+    }, []);
+    
     return (
       <Grid container spacing={3} className={classes.cardGrid}>
-        {roles.map((role, index) => (
-          <Grow in={true} timeout={(index + 1) * 300} key={role.id}>
+        {processedRoles.map((role, index) => (
+          <Grow in={true} timeout={(index + 1) * 300} key={role.id || index}>
             <Grid item xs={12} sm={6} md={4}>
               <Card className={classes.card}>
                 <div className={classes.cardHeader}>
@@ -417,6 +527,82 @@ const RoleMiningResults = ({ results, onBack }) => {
         ))}
       </Grid>
     );
+  };
+  
+  // Helper function to clean role names
+  const cleanRoleName = (name) => {
+    if (!name) return "Unknown Role";
+    
+    // Remove any markdown formatting
+    let cleanName = name.replace(/\*\*/g, "").trim();
+    
+    // If the name contains specific metadata terms, clean them up
+    const metadataTerms = [
+      "Key Permissions", "Justification", "Confidence Level", 
+      "Estimated User Count", "Users", "Applications", "Description"
+    ];
+    
+    // For each metadata term, if it exists in the name, trim the name to before that term
+    for (const term of metadataTerms) {
+      const termIndex = cleanName.toLowerCase().indexOf(term.toLowerCase());
+      if (termIndex > 0) {
+        cleanName = cleanName.substring(0, termIndex).trim();
+      }
+    }
+    
+    // If name is too long (> 50 chars), it likely includes description text
+    if (cleanName.length > 50) {
+      // Try to extract just the role title using common separators
+      if (cleanName.includes(" Key permissions:")) {
+        cleanName = cleanName.substring(0, cleanName.indexOf(" Key permissions:")).trim();
+      } else if (cleanName.includes(" -")) {
+        cleanName = cleanName.substring(0, cleanName.indexOf(" -")).trim();
+      } else if (cleanName.includes(".")) {
+        cleanName = cleanName.substring(0, cleanName.indexOf(".")).trim();
+      } else {
+        // Just take first 30 chars if we can't find a good separator
+        cleanName = cleanName.substring(0, Math.min(30, cleanName.length)).trim();
+      }
+    }
+    
+    // Format the name properly - capitalize first letter of each word
+    return cleanName.split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+  
+  // Helper function to clean applications array
+  const cleanApplications = (apps) => {
+    if (!Array.isArray(apps)) {
+      return ["Unknown"];
+    }
+    
+    // Filter out any metadata terms that might have slipped into the applications array
+    const metadataTerms = [
+      "**Justification**", "**Confidence Level**", "**Key Permissions**", 
+      "**Estimated User Count**", "Justification", "Confidence", "Users",
+      "Description", "Key Permissions", "Estimated User Count"
+    ];
+    
+    // Clean up each application name and filter out empty or metadata terms
+    const cleanedApps = apps
+      .map(app => typeof app === 'string' ? app.replace(/\*\*/g, "").trim() : String(app))
+      .filter(app => 
+        app && 
+        app.length > 0 && 
+        !metadataTerms.some(term => app.toLowerCase().includes(term.toLowerCase()))
+      );
+    
+    // Remove duplicates (case-insensitive)
+    const uniqueApps = Array.from(
+      new Set(cleanedApps.map(app => app.toLowerCase()))
+    ).map(lowerApp => {
+      // Find the original casing version
+      const originalApp = cleanedApps.find(a => a.toLowerCase() === lowerApp);
+      return originalApp || lowerApp;
+    });
+    
+    return uniqueApps.length > 0 ? uniqueApps : ["Application"];
   };
 
   return (
@@ -510,6 +696,7 @@ const RoleMiningResults = ({ results, onBack }) => {
           onClose={() => setDetailDialogOpen(false)}
           aria-labelledby="role-detail-dialog-title"
           TransitionComponent={Zoom}
+          maxWidth="md"
         >
           <DialogTitle id="role-detail-dialog-title">
             <Box display="flex" alignItems="center">
@@ -531,11 +718,22 @@ const RoleMiningResults = ({ results, onBack }) => {
           <DialogContent className={classes.dialogContent}>
             {selectedRole && (
               <>
+                {selectedRole.attributes?.justification && (
+                  <Box mb={2} p={2} bgcolor="#f9f9f9" borderRadius={1}>
+                    <Typography variant="subtitle2" gutterBottom color="primary">
+                      Justification:
+                    </Typography>
+                    <Typography variant="body2">
+                      {selectedRole.attributes.justification}
+                    </Typography>
+                  </Box>
+                )}
+              
                 <Typography variant="subtitle1" gutterBottom>
                   Users ({selectedRole.userCount})
                 </Typography>
                 <List dense>
-                  {selectedRole.users ? (
+                  {selectedRole.users && selectedRole.users.length > 0 ? (
                     selectedRole.users.map((user, index) => (
                       <Fade in={true} timeout={(index + 1) * 200} key={index}>
                         <ListItem>
@@ -570,21 +768,25 @@ const RoleMiningResults = ({ results, onBack }) => {
                   Applications
                 </Typography>
                 <Box mb={2}>
-                  {selectedRole.applications.map((app, index) => (
-                    <Zoom in={true} timeout={400 + (index * 100)} key={index}>
-                      <Chip
-                        label={app}
-                        className={classes.chip}
-                      />
-                    </Zoom>
-                  ))}
+                  {selectedRole.applications && selectedRole.applications.length > 0 ? (
+                    selectedRole.applications.map((app, index) => (
+                      <Zoom in={true} timeout={400 + (index * 100)} key={index}>
+                        <Chip
+                          label={app}
+                          className={classes.chip}
+                        />
+                      </Zoom>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="textSecondary">No applications specified</Typography>
+                  )}
                 </Box>
                 
                 <Typography variant="subtitle1" gutterBottom>
                   Permissions ({selectedRole.permissionCount})
                 </Typography>
                 <List dense>
-                  {selectedRole.permissions ? (
+                  {selectedRole.permissions && selectedRole.permissions.length > 0 ? (
                     selectedRole.permissions.map((permission, index) => (
                       <Fade in={true} timeout={(index + 1) * 200} key={index}>
                         <ListItem>
@@ -598,7 +800,7 @@ const RoleMiningResults = ({ results, onBack }) => {
                         <ListItem>
                           <ListItemText 
                             primary={`Permission ${index + 1}`} 
-                            secondary={`${selectedRole.applications[index % selectedRole.applications.length]} - Access Level ${index + 1}`} 
+                            secondary={`${selectedRole.applications[index % Math.max(1, selectedRole.applications.length)]} - Access Level ${index + 1}`} 
                           />
                         </ListItem>
                       </Fade>
@@ -612,6 +814,22 @@ const RoleMiningResults = ({ results, onBack }) => {
                     </ListItem>
                   )}
                 </List>
+                
+                {selectedRole.confidence && (
+                  <Box mt={2} display="flex" alignItems="center">
+                    <Typography variant="subtitle1" style={{ marginRight: '12px' }}>
+                      AI Confidence:
+                    </Typography>
+                    <Chip
+                      label={`${selectedRole.confidence}%`}
+                      style={{
+                        backgroundColor: getConfidenceColor(selectedRole.confidence),
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}
+                    />
+                  </Box>
+                )}
               </>
             )}
           </DialogContent>
