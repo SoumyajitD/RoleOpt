@@ -160,8 +160,8 @@ public class AIRoleSuggestionService {
         try {
             // Pattern for parsing role sections with dashes at beginning of lines
             Pattern dashRolePattern = Pattern.compile(
-                "([\\w\\s-]+)\\s*-\\s*-\\s*(\\d+)\\s*(\\d+)%\\s*([^-]+)\\s*---",
-                Pattern.DOTALL
+                "([\\w\\s()-]+?)\\s*Key\\s*Permissions:\\s*([^-]+?)\\s*Estimated\\s*User\\s*Count:\\s*(\\d+)\\s*\\([^)]+\\)\\s*Confidence\\s*Level:\\s*(\\d+)%\\s*Justification:\\s*([^-]+)\\s*---",
+                Pattern.DOTALL | Pattern.CASE_INSENSITIVE
             );
             
             Matcher dashMatcher = dashRolePattern.matcher(aiResponse);
@@ -171,9 +171,11 @@ public class AIRoleSuggestionService {
             while (dashMatcher.find()) {
                 roleCount++;
                 String roleName = dashMatcher.group(1).trim();
+                String permissionsText = dashMatcher.group(2).trim();
+                
                 int userCount = 0;
                 try {
-                    userCount = Integer.parseInt(dashMatcher.group(2).trim());
+                    userCount = Integer.parseInt(dashMatcher.group(3).trim());
                 } catch (NumberFormatException e) {
                     log.warn("Failed to parse user count, using default");
                     userCount = 2;
@@ -181,13 +183,13 @@ public class AIRoleSuggestionService {
                 
                 int confidence = 0;
                 try {
-                    confidence = Integer.parseInt(dashMatcher.group(3).trim());
+                    confidence = Integer.parseInt(dashMatcher.group(4).trim());
                 } catch (NumberFormatException e) {
                     log.warn("Failed to parse confidence, using default");
                     confidence = 70;
                 }
                 
-                String justification = dashMatcher.group(4).trim();
+                String justification = dashMatcher.group(5).trim();
                 
                 RoleDTO role = new RoleDTO();
                 role.setId((long) (100 + roleCount));
@@ -196,63 +198,113 @@ public class AIRoleSuggestionService {
                 role.setConfidence(confidence);
                 role.setAiGenerated(true);
                 
-                // Extract application from role name or justification
-                List<String> applications = new ArrayList<>();
-                if (roleName.toLowerCase().contains("finance")) {
-                    applications.add("FinanceTool");
-                } else if (roleName.toLowerCase().contains("engineer") || 
-                           roleName.toLowerCase().contains("code")) {
-                    applications.add("CodeRepo");
-                } else if (roleName.toLowerCase().contains("hr") || 
-                           roleName.toLowerCase().contains("human resources")) {
-                    applications.add("HRPortal");
-                } else if (roleName.toLowerCase().contains("operations") || 
-                           roleName.toLowerCase().contains("ops")) {
-                    applications.add("OpsTools");
-                } else if (roleName.toLowerCase().contains("support")) {
-                    applications.add("SupportTools");
-                } else {
-                    applications.add("Application");
-                }
-                
-                // Extract permissions from justification
+                // Parse permissions from the permissions text
                 List<String> permissions = new ArrayList<>();
-                String[] lines = justification.split("\\n");
-                for (String line : lines) {
-                    if (line.toLowerCase().contains("permission") || 
-                        line.toLowerCase().contains("access") ||
-                        (line.contains(":") && !line.toLowerCase().contains("justification"))) {
-                        permissions.add(line.trim());
+                String[] permLines = permissionsText.split("\\n");
+                for (String line : permLines) {
+                    line = line.trim();
+                    if (line.startsWith("-")) {
+                        line = line.substring(1).trim();
+                        permissions.add(line);
                     }
                 }
                 
-                // If no permissions found, create default ones based on applications
+                // If no permissions found in parsing, extract from justification
                 if (permissions.isEmpty()) {
-                    for (String app : applications) {
-                        permissions.add(app + ": View");
-                        permissions.add(app + ": Edit");
+                    String[] lines = justification.split("\\n");
+                    for (String line : lines) {
+                        if (line.toLowerCase().contains("permission") || 
+                            line.toLowerCase().contains("access") ||
+                            (line.contains(":") && !line.toLowerCase().contains("justification"))) {
+                            permissions.add(line.trim());
+                        }
                     }
                 }
                 
-                role.setApplications(applications);
                 role.setPermissions(permissions);
                 role.setPermissionCount(permissions.size());
                 
-                // Generate example users
-                List<String> users = new ArrayList<>();
-                for (int i = 0; i < userCount; i++) {
-                    String firstName = "";
-                    String lastName = "";
-                    switch (i % 5) {
-                        case 0: firstName = "Alice"; lastName = "Johnson"; break;
-                        case 1: firstName = "Bob"; lastName = "Williams"; break;
-                        case 2: firstName = "Carol"; lastName = "Lee"; break;
-                        case 3: firstName = "David"; lastName = "Smith"; break;
-                        case 4: firstName = "John"; lastName = "Doe"; break;
+                // Extract applications from permissions
+                Set<String> appSet = new HashSet<>();
+                for (String perm : permissions) {
+                    if (perm.contains(":")) {
+                        String app = perm.substring(0, perm.indexOf(":")).trim();
+                        appSet.add(app);
+                    } else if (perm.contains(" ")) {
+                        String app = perm.substring(0, perm.indexOf(" ")).trim();
+                        appSet.add(app);
                     }
-                    users.add(firstName + " " + lastName + " (" + firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com)");
                 }
+                
+                // If no apps extracted, infer from role name
+                if (appSet.isEmpty()) {
+                    if (roleName.toLowerCase().contains("hr") || 
+                        roleName.toLowerCase().contains("human resources")) {
+                        appSet.add("HRPortal");
+                    } else if (roleName.toLowerCase().contains("finance")) {
+                        appSet.add("FinanceTool");
+                    } else if (roleName.toLowerCase().contains("code") || 
+                               roleName.toLowerCase().contains("eng") || 
+                               roleName.toLowerCase().contains("developer")) {
+                        appSet.add("CodeRepo");
+                    } else {
+                        appSet.add("Application");
+                    }
+                }
+                
+                List<String> applications = new ArrayList<>(appSet);
+                role.setApplications(applications);
+                
+                // Extract user names if available from the response
+                Pattern userNamePattern = Pattern.compile("\\((.*?)(?:,\\s*\\w+)?\\)", Pattern.CASE_INSENSITIVE);
+                Matcher userNameMatcher = userNamePattern.matcher(dashMatcher.group(3));
+                List<String> users = new ArrayList<>();
+                
+                // If user names are found in the response
+                if (userNameMatcher.find()) {
+                    String[] userNames = userNameMatcher.group(1).split(";\\s*");
+                    for (String name : userNames) {
+                        name = name.trim();
+                        if (!name.isEmpty()) {
+                            // Format: User Name (Department)
+                            String department = "";
+                            if (roleName.toLowerCase().contains("finance")) {
+                                department = "Finance";
+                            } else if (roleName.toLowerCase().contains("hr")) {
+                                department = "HR";
+                            } else if (roleName.toLowerCase().contains("eng") || 
+                                       roleName.toLowerCase().contains("code")) {
+                                department = "Engineering";
+                            } else {
+                                department = "Department";
+                            }
+                            
+                            users.add(name + " (" + department + ")");
+                        }
+                    }
+                }
+                
+                // If no users found, generate sample users
+                if (users.isEmpty()) {
+                    for (int i = 0; i < Math.max(userCount, 1); i++) {
+                        String firstName = "";
+                        String lastName = "";
+                        String department = "";
+                        
+                        switch (i % 5) {
+                            case 0: firstName = "Alice"; lastName = "Johnson"; department = "HR"; break;
+                            case 1: firstName = "Bob"; lastName = "Williams"; department = "Finance"; break;
+                            case 2: firstName = "Carol"; lastName = "Lee"; department = "Finance"; break;
+                            case 3: firstName = "Jane"; lastName = "Smith"; department = "Engineering"; break;
+                            case 4: firstName = "John"; lastName = "Doe"; department = "Engineering"; break;
+                        }
+                        
+                        users.add(firstName + " " + lastName + " (" + department + ")");
+                    }
+                }
+                
                 role.setUsers(users);
+                role.setUserCount(userCount);
                 
                 // Add justification as an attribute
                 Map<String, Object> attributes = new HashMap<>();
@@ -384,7 +436,7 @@ public class AIRoleSuggestionService {
                         role.setPermissions(permissions);
                         role.setPermissionCount(permissions.size());
                         
-                        // Extract application from permissions
+                        // Extract applications from permissions
                         Set<String> appSet = new HashSet<>();
                         for (String perm : permissions) {
                             if (perm.contains(":")) {
@@ -407,11 +459,6 @@ public class AIRoleSuggestionService {
                                      roleName.toLowerCase().contains("eng") || 
                                      roleName.toLowerCase().contains("developer")) {
                                 appSet.add("CodeRepo");
-                            } else if (roleName.toLowerCase().contains("support")) {
-                                appSet.add("SupportTools");
-                            } else if (roleName.toLowerCase().contains("operations") || 
-                                     roleName.toLowerCase().contains("ops")) {
-                                appSet.add("OpsTools");
                             } else {
                                 appSet.add("Application");
                             }
@@ -420,21 +467,56 @@ public class AIRoleSuggestionService {
                         List<String> apps = new ArrayList<>(appSet);
                         role.setApplications(apps);
                         
-                        // Generate sample users
+                        // Extract user names if available from the response
+                        Pattern userNamePattern = Pattern.compile("\\((.*?)(?:,\\s*\\w+)?\\)", Pattern.CASE_INSENSITIVE);
+                        Matcher userNameMatcher = userNamePattern.matcher(roleSection);
                         List<String> users = new ArrayList<>();
-                        for (int i = 0; i < Math.max(userCount, 1); i++) {
-                            String firstName = "";
-                            String lastName = "";
-                            switch (i % 5) {
-                                case 0: firstName = "Alice"; lastName = "Johnson"; break;
-                                case 1: firstName = "Bob"; lastName = "Williams"; break;
-                                case 2: firstName = "Carol"; lastName = "Lee"; break;
-                                case 3: firstName = "David"; lastName = "Smith"; break;
-                                case 4: firstName = "John"; lastName = "Doe"; break;
+                        
+                        // If user names are found in the response
+                        if (userNameMatcher.find()) {
+                            String[] userNames = userNameMatcher.group(1).split(";\\s*");
+                            for (String name : userNames) {
+                                name = name.trim();
+                                if (!name.isEmpty()) {
+                                    // Format: User Name (Department)
+                                    String department = "";
+                                    if (roleName.toLowerCase().contains("finance")) {
+                                        department = "Finance";
+                                    } else if (roleName.toLowerCase().contains("hr")) {
+                                        department = "HR";
+                                    } else if (roleName.toLowerCase().contains("eng") || 
+                                               roleName.toLowerCase().contains("code")) {
+                                        department = "Engineering";
+                                    } else {
+                                        department = "Department";
+                                    }
+                                    
+                                    users.add(name + " (" + department + ")");
+                                }
                             }
-                            users.add(firstName + " " + lastName + " (" + firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com)");
                         }
+                        
+                        // If no users found, generate sample users
+                        if (users.isEmpty()) {
+                            for (int i = 0; i < Math.max(userCount, 1); i++) {
+                                String firstName = "";
+                                String lastName = "";
+                                String department = "";
+                                
+                                switch (i % 5) {
+                                    case 0: firstName = "Alice"; lastName = "Johnson"; department = "HR"; break;
+                                    case 1: firstName = "Bob"; lastName = "Williams"; department = "Finance"; break;
+                                    case 2: firstName = "Carol"; lastName = "Lee"; department = "Finance"; break;
+                                    case 3: firstName = "Jane"; lastName = "Smith"; department = "Engineering"; break;
+                                    case 4: firstName = "John"; lastName = "Doe"; department = "Engineering"; break;
+                                }
+                                
+                                users.add(firstName + " " + lastName + " (" + department + ")");
+                            }
+                        }
+                        
                         role.setUsers(users);
+                        role.setUserCount(userCount);
                         
                         // Store justification in attributes
                         Map<String, Object> attributes = new HashMap<>();
@@ -506,6 +588,21 @@ public class AIRoleSuggestionService {
         // Generate users based on the role
         int userCount = 2;
         List<String> detailedUsers = new ArrayList<>();
+        
+        // Determine department based on role name
+        String department = "Unknown";
+        if (roleName.contains("HR")) {
+            department = "HR";
+        } else if (roleName.contains("Finance")) {
+            department = "Finance";
+        } else if (roleName.contains("Engineering")) {
+            department = "Engineering";
+        } else if (roleName.contains("Operations")) {
+            department = "Operations";
+        } else if (roleName.contains("Support")) {
+            department = "Support";
+        }
+        
         for (int i = 1; i <= userCount; i++) {
             String firstName = "";
             String lastName = "";
@@ -514,8 +611,7 @@ public class AIRoleSuggestionService {
                 case 1: firstName = "Bob"; lastName = "Williams"; break;
                 case 2: firstName = "Carol"; lastName = "Lee"; break;
             }
-            String userEmail = firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com";
-            detailedUsers.add(firstName + " " + lastName + " (" + userEmail + ")");
+            detailedUsers.add(firstName + " " + lastName + " (" + department + ")");
         }
         role.setUsers(detailedUsers);
         role.setUserCount(userCount);
